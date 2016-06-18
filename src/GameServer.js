@@ -1308,12 +1308,24 @@ GameServer.prototype.getStats = function() {
         if (client.playerTracker && client.playerTracker.cells.length > 0)
             players++;
     });
+	
+    var lagMessage = "extreme high lag";
+	if (this.updateTimeAvg < 20)
+		lagMessage = "perfectly smooth";
+	else if (this.updateTimeAvg < 35)
+		lagMessage = "good";
+	else if (this.updateTimeAvg < 40)
+		lagMessage = "tiny lag";
+	else if (this.updateTimeAvg < 50)
+		lagMessage = "lag";
+	
     var s = {
         'current_players': this.clients.length,
         'alive': players,
         'spectators': this.clients.length - players,
         'max_players': this.config.serverMaxConnections,
         'gamemode': this.gameMode.name,
+		'update_time':this.updateTimeAvg.toFixed(3) + " [ms] (" + lagMessage + ")",
         'uptime': Math.round((new Date().getTime() - this.startTime)/1000/60)+" m",
         'start_time': this.startTime
     };
