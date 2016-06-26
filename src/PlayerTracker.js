@@ -26,7 +26,11 @@ function PlayerTracker(gameServer, socket) {
 
     this.team = 0;
     this.spectate = false;
-    this.freeRoam = false; // Free-roam mode enables player to move in spectate mode
+    this.freeRoam = false; // Free-roam mode enables player to move in spectate mode (by pressing Q in spectate mode)
+	this.spectateLargest = true; // spectate the largest client by default (or by pressing Space in spectate mode)
+	this.spectateEveryone = false; // spectate next player from client list (alive) until his death (by pressing W in spectate mode)
+	this.specPlayer = undefined;
+	this.specPlayerNumber = -1;
 
     this.centerPos = {
         x: 0,
@@ -393,15 +397,22 @@ PlayerTracker.prototype.updateViewBox = function () {
 };
 
 PlayerTracker.prototype.getVisibleNodes = function () {
-    if (this.spectate) {
-        var specPlayer = this.gameServer.largestClient;
-        if (!this.freeRoam && specPlayer != null) {
+    if (this.spectate) 
+	{
+		if (this.spectateLargest)
+			this.specPlayer = this.gameServer.largestClient;
+		else if (this.spectateEveryone)
+		{
+			if (this.specPlayer == null || this.specPlayer.cells.length == 0)
+				this.switchSpectator();
+		}
+        if (!this.freeRoam && this.specPlayer != null) {
             // top player spectate
-            this.setCenterPos(specPlayer.centerPos.x, specPlayer.centerPos.y);
-            this.scale = specPlayer.getScale();
+            this.setCenterPos(this.specPlayer.centerPos.x, this.specPlayer.centerPos.y);
+            this.scale = this.specPlayer.getScale();
             this.sendCameraPacket();
             this.updateViewBox();
-            return specPlayer.visibleNodes.slice(0);
+            return this.specPlayer.visibleNodes.slice(0);
         }
         // free roam spectate
         this.updateCenterFreeRoam();
@@ -415,6 +426,45 @@ PlayerTracker.prototype.getVisibleNodes = function () {
     this.updateViewBox();
     return this.calcVisibleNodes();
 }
+
+PlayerTracker.prototype.switchSpectator = function() {
+    // Find next non-spectator with cells in the client list
+        var oldPlayer = this.specPlayerNumber + 1;
+        var count = 0;
+        while (this.specPlayerNumber != oldPlayer && count != this.gameServer.clients.length) 
+		{
+            if (oldPlayer == this.gameServer.clients.length) {
+                oldPlayer = 0;
+                continue;
+            }
+            if (!this.gameServer.clients[oldPlayer]) {
+                // Break out of loop in case client tries to spectate an undefined player
+                this.specPlayerNumber = -1;
+				this.specPlayer = null;
+                break;
+            }
+            if (this.gameServer.clients[oldPlayer].playerTracker.cells.length > 0) {
+                break;
+            }
+            oldPlayer++;
+            count++;
+        }
+        if (count == this.gameServer.clients.length) {
+            this.specPlayerNumber = -1;
+			this.specPlayer = null;
+        } 
+		else 
+		{
+            this.specPlayerNumber = Math.min(this.gameServer.clients.length - 1, oldPlayer);
+			if (this.gameServer.clients[this.specPlayerNumber])
+			{
+				if (this.specPlayerNumber == -1)
+					this.specPlayer = null;
+				else
+					this.specPlayer = this.gameServer.clients[this.specPlayerNumber].playerTracker;
+			}
+        }
+};
 
 PlayerTracker.prototype.calcVisibleNodes = function() {
     var newVisible = [];
