@@ -37,21 +37,39 @@ Mode.prototype.onPlayerSpawn = function(gameServer, player) {
 
 Mode.prototype.pressQ = function(gameServer, player) {
     // Called when the Q key is pressed
-    if (player.spectate) {
-        player.freeRoam = !player.freeRoam;
-    }
+    if (player.spectate) 
+	{
+        player.freeRoam = true;
+		player.spectateEveryone = false;
+		player.spectateLargest = false;
+	}
 };
 
 Mode.prototype.pressW = function(gameServer, player) {
     if (!gameServer.run) return;
     // Called when the W key is pressed
-    gameServer.ejectMass(player);
+	if (player.spectate) 
+	{
+		player.freeRoam = false;
+		player.spectateEveryone = true;
+		player.spectateLargest = false;
+		player.switchSpectator(); // find next spectacor
+	}
+	else
+		gameServer.ejectMass(player);
 };
 
 Mode.prototype.pressSpace = function(gameServer, player) {
     if (!gameServer.run) return;
     // Called when the Space bar is pressed
-    gameServer.splitCells(player);
+	if (player.spectate) 
+	{
+		player.freeRoam = false;
+		player.spectateEveryone = false;
+		player.spectateLargest = true;
+	}
+	else
+		gameServer.splitCells(player);
 };
 
 Mode.prototype.onCellAdd = function(cell) {
