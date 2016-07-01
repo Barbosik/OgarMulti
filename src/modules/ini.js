@@ -109,12 +109,20 @@ function decode(str) {
             }
         }
 
-        // Mass to Size function catcher
-        if (value.startsWith("massToSize(") && value.endsWith(")")) {
+        //// Mass to Size function catcher
+        if (startsWith(value, "massToSize(") && endsWith(value, ")")) {
             // 11: length of "massToSize("
-            value = Math.sqrt(parseFloat(value.slice(11, value.length - 1)) * 100);
-            
+            var strValue = value.slice(11, value.length - 1).trim();
+            value = Math.sqrt(parseFloat(strValue) * 100) + 0.5;
         }
+        function startsWith(value, pattern) {
+            return value.length >= pattern.length && 
+                value.indexOf(pattern) === 0;
+        };
+        function endsWith(value, pattern) {
+            return value.length >= pattern.length && 
+                value.lastIndexOf(pattern) === value.length - pattern.length;
+        };
 
         // safeguard against resetting a previously defined
         // array by accidentally forgetting the brackets
@@ -172,7 +180,9 @@ function unsafe(val, doUnesc) {
         }
         try {
             val = JSON.parse(val);
-        } catch (_) {}
+        } catch (err) {
+            Logger.error(err.stack);
+        }
     } else {
         // walk the val to find the first not-escaped ; character
         var esc = false;

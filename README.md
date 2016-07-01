@@ -1,6 +1,8 @@
 # MultiOgar
 Ogar game server with fast and smooth vanilla physics and multi-protocol support.
 
+Current version: **1.2.8**
+
 ## Project Info
 ![Language](https://img.shields.io/badge/language-node.js-yellow.svg)
 [![License](https://img.shields.io/badge/license-APACHE2-blue.svg)](https://github.com/Barbosik/OgarMulti/blob/master/LICENSE.md)
@@ -13,10 +15,61 @@ Original Ogar found [here](https://github.com/OgarProject/Ogar)
 
 The goal is to make good and smooth physics and cleanup the code.
 
+
 ## Screenshot
 
-Map 6000x6000, 300 bots, 5000 food, 10 viruses - works pretty smooth with no lags:
-![Screenshot](http://i.imgur.com/4Wg8s9b.png)
+MultiOgar console:
+
+![Screenshot](https://i.imgur.com/GiJURq0.png)
+
+Version 1.2.8: 
+* 1000 bots, 500 viruses, 1000 foods, map 14142x14142
+* Works very-very smooth (with a little slower speed, but it will not be noticed by user).
+* CPU load: 14% (x4 core)
+* Memory usage: 70 MB
+
+![Screenshot](http://i.imgur.com/XsXjT0o.png)
+
+
+## Install
+
+#### Windows:
+* Download and install node.js: https://nodejs.org/en/download/ (64-bit recommended)
+* Download MultiOgar code: https://github.com/Barbosik/MultiOgar/archive/master.zip
+* Unzip MultiOgar code into some folder
+* Start command line and execute from MultiOgar folder
+```
+npm install
+```
+and run the server:
+```
+cd src
+node index.js
+```
+
+#### Linux:
+```
+# First update your packages:
+sudo apt-get update
+
+# Install git:
+sudo apt-get install git
+
+# Install node.js:
+sudo apt-get install nodejs-legacy npm
+
+# Clone MultiOgar:
+git clone git://github.com/Barbosik/MultiOgar.git
+
+# Install dependencies:
+cd MultiOgar
+npm install
+
+# Run the server:
+cd src
+sudo node index.js
+```
+
 
 ## Clients
 
@@ -40,10 +93,10 @@ Just replace `127.0.0.1:50000` in the url to the server IP and port to play.
 
 URL | Protocol | Description
 --- | --- | ---
-http://agar.io/?ip=127.0.0.1:50000 | 8 | Official Client
-http://ogar.mivabe.nl/?ip=127.0.0.1:50000 | early 5 | MivaBe, pretty smooth, custom graphics (anime)
-http://play.ogarul.tk/?ip=127.0.0.1:50000 | 4 | OgarUL, vanilla style (sends invalid protocol=1)
-http://c0nsume.me/private4.php?ip=127.0.0.1:50000 | 5 | vanilla style
+http://agar.io/?ip=127.0.0.1:443 | 8 | Vanilla
+http://ogar.mivabe.nl/?ip=127.0.0.1:443 | early 5 | MivaBe, pretty smooth, custom graphics (anime)
+http://play.ogarul.tk/?ip=127.0.0.1:443 | 4 | OgarUL, vanilla style (sends invalid protocol=1)
+http://c0nsume.me/private4.php?ip=127.0.0.1:443 | 5 | vanilla style
 
 ###MultiOgar Servers
 
@@ -57,6 +110,19 @@ vps.simonorj.com:24270 | USA | Instant Merge | https://redd.it/4mufge
 
 
 ## What's new:
+* Added performance optimizations, now up to 700 bots with no lags at all
+* Fixed bug when some cell split/eject were shown with delay for some clients
+* Added a lot of protocol optimizations, now server works with no lags at all even with 64 connected players
+* Added server version, now you can check if your MultiOgar code is fresh
+* Significant performance improvement and more smooth physics
+* Added protocol optimizations to reduce lags on cell multi split
+* Fixed pop-split behavior
+* Added spectate walk through feature (use Space key in spectate mode to lock the current player or to lock the next one. Use key Q to reset into the normal mode. Locked player is highlighted on leaderboard)
+* Fixed cell-split order, now split-run works ok
+* A little performance improvement for split/eject
+* Fixed min mass to split/eject
+* Fixed mass-limit behavior
+* Added chat player commands /skin and /kill (to change skin, just type /skin %shark in the chat)
 * Added scramble level 3 (anti-bot/anti-minimap protection), unsupported on some clients (unfortunately include vanilla, ogar.mivabe.nl works ok)
 * NOTE: there is major gameserver.ini change, previous version is incompatible!
 * Massive perfromance improvement & reduce network traffic

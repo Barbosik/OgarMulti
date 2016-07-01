@@ -1,5 +1,6 @@
 var FFA = require('./FFA'); // Base gamemode
 var Entity = require('../entity');
+var Logger = require('../modules/Logger');
 
 function Experimental() {
     FFA.apply(this, Array.prototype.slice.call(arguments));
@@ -31,8 +32,8 @@ Experimental.prototype.spawnMotherCell = function (gameServer) {
         return;
     }
     // Spawns a mother cell
-    var pos = gameServer.getRandomSpawn(149);
-    if (pos == null) {
+    var pos = gameServer.getRandomPosition();
+    if (gameServer.willCollide(pos, 149)) {
         // cannot find safe position => do not spawn
         return;
     }
@@ -70,10 +71,9 @@ Experimental.prototype.onServerInit = function(gameServer) {
         if (index != -1) {
             self.nodesMother.splice(index, 1);
         } else {
-            console.log("[Warning] Tried to remove a non existing MotherCell!");
+            Logger.error("Experimental.onServerInit.MotherVirus.onRemove: Tried to remove a non existing virus!");
         }
     };
-    //gameServer.getRandomSpawn = gameServer.getRandomPosition;
 };
 
 Experimental.prototype.onChange = function (gameServer) {
@@ -86,7 +86,6 @@ Experimental.prototype.onChange = function (gameServer) {
     Entity.Virus.prototype.onEat = require('../Entity/Virus').prototype.onEat;
     Entity.MotherCell.prototype.onAdd = require('../Entity/MotherCell').prototype.onAdd;
     Entity.MotherCell.prototype.onRemove = require('../Entity/MotherCell').prototype.onRemove;
-    //gameServer.getRandomSpawn = require('../GameServer').prototype.getRandomSpawn;
 };
 
 Experimental.prototype.onTick = function(gameServer) {

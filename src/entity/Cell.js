@@ -7,7 +7,7 @@ function Cell(gameServer, owner, position, size) {
     this.position = { x: 0, y: 0 };
     this._size = 0;
     this._mass = 0;
-    this._squareSize = 0;
+    this._sizeSquared = 0;
     this.cellType = -1;     // 0 = Player Cell, 1 = Food, 2 = Virus, 3 = Ejected Mass
     this.isSpiked = false;  // If true, then this cell has spikes around it
     this.isAgitated = false;// If true, then this cell has waves on it's outline
@@ -35,14 +35,6 @@ module.exports = Cell;
 
 // Fields not defined by the constructor are considered private and need a getter/setter to access from a different class
 
-Cell.prototype.getName = function() {
-    return "";
-};
-
-Cell.prototype.getSkin = function () {
-    return "";
-};
-
 Cell.prototype.setColor = function(color) {
     this.color.r = color.r;
     this.color.g = color.g;
@@ -62,8 +54,8 @@ Cell.prototype.setSize = function (size) {
         throw new TypeError("Cell.setSize: size is NaN");
     }
     this._size = size;
-    this._squareSize = size * size;
-    this._mass = this._squareSize / 100;
+    this._sizeSquared = size * size;
+    this._mass = this._sizeSquared / 100;
     if (this.owner)
         this.owner.massChanged();
 };
@@ -76,8 +68,8 @@ Cell.prototype.getMass = function () {
     return this._mass;
 };
 
-Cell.prototype.getSquareSize = function () {
-    return this._squareSize;
+Cell.prototype.getSizeSquared = function () {
+    return this._sizeSquared;
 };
 
 Cell.prototype.getSpeed = function() {
@@ -129,9 +121,7 @@ Cell.prototype.canEat = function (cell) {
 
 Cell.prototype.onEat = function (prey) {
     // Called to eat prey cell
-    var size1 = this.getSize();
-    var size2 = prey.getSize();
-    this.setSize(Math.sqrt(size1 * size1 + size2 * size2));
+    this.setSize(Math.sqrt(this.getSizeSquared() + prey.getSizeSquared()));
 };
 
 Cell.prototype.onEaten = function (hunter) {

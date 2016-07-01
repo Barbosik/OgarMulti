@@ -12,14 +12,6 @@ PlayerCell.prototype = new Cell();
 
 // Main Functions
 
-PlayerCell.prototype.getName = function () {
-    return this.owner.name;
-};
-
-PlayerCell.prototype.getSkin = function () {
-    return this.owner.skin;
-};
-
 PlayerCell.prototype.updateRemerge = function () {
     var age = this.getAge(this.gameServer.getTick());
     if (age < 15) {
@@ -89,12 +81,6 @@ PlayerCell.prototype.moveUser = function (border) {
 };
 
 // Override
-
-PlayerCell.prototype.onEat = function (prey) {
-    var size1 = this.getSize();
-    var size2 = prey.getSize();
-    this.setSize(Math.sqrt(size1 * size1 + size2 * size2));
-};
 
 PlayerCell.prototype.onAdd = function(gameServer) {
     // Gamemode actions

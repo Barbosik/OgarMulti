@@ -1,3 +1,4 @@
+var pjson = require('../package.json');
 var Packet = require('./packet');
 var BinaryReader = require('./packet/BinaryReader');
 
@@ -12,6 +13,7 @@ function PacketHandler(gameServer, socket) {
     this.pressQ = false;
     this.pressW = false;
     this.pressSpace = false;
+    this.lastStatTime = +new Date;
 }
 
 module.exports = PacketHandler;
@@ -41,8 +43,9 @@ PacketHandler.prototype.handleMessage = function(message) {
         }
         // Send handshake response
         this.socket.sendPacket(new Packet.ClearAll());
-        this.socket.sendPacket(new Packet.SetBorder(this.socket.playerTracker, this.gameServer.border, this.gameServer.config.serverGamemode, "MultiOgar"));
+        this.socket.sendPacket(new Packet.SetBorder(this.socket.playerTracker, this.gameServer.border, this.gameServer.config.serverGamemode, "MultiOgar " + pjson.version));
         // Send welcome message
+        this.gameServer.sendChatMessage(null, this.socket.playerTracker, "MultiOgar " + pjson.version);
         if (this.gameServer.config.serverWelcome1)
             this.gameServer.sendChatMessage(null, this.socket.playerTracker, this.gameServer.config.serverWelcome1);
         if (this.gameServer.config.serverWelcome2)
@@ -128,11 +131,19 @@ PacketHandler.prototype.handleMessage = function(message) {
                 break;
             reader.skipBytes(rvLength);        // reserved
             var text = null;
-            if (this.protocol <= 5)
+            if (this.protocol < 6)
                 text = reader.readStringZeroUnicode();
             else
                 text = reader.readStringZeroUtf8();
             this.gameServer.onChatMessage(this.socket.playerTracker, null, text);
+            break;
+        case 254:
+            // Server stat
+            var time = +new Date;
+            var dt = time - this.lastStatTime;
+            this.lastStatTime = time;
+            if (dt < 1000) break;
+            this.socket.sendPacket(new Packet.ServerStat(this.socket.playerTracker));
             break;
         default:
             break;
