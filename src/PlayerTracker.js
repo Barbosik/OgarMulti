@@ -24,6 +24,9 @@ function PlayerTracker(gameServer, socket) {
     this.isMassChanged = true;
     this.borderCounter = 0;
 
+    this.isAdmin = false;
+	this.clientOrigin = "";
+
     this.mouse = {
         x: 0,
         y: 0
