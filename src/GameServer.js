@@ -208,11 +208,11 @@ GameServer.prototype.onClientSocketOpen = function (ws) {
     ws.remoteAddress = ws._socket.remoteAddress;
     ws.remotePort = ws._socket.remotePort;
     ws.lastAliveTime = +new Date;
-    ws.clientOrigin = ws.upgradeReq.headers.origin;
     Logger.write("CONNECTED " + ws.remoteAddress + ":" + ws.remotePort + ", origin: \"" + ws.upgradeReq.headers.origin + "\"");
     
     ws.playerTracker = new PlayerTracker(this, ws);
     ws.packetHandler = new PacketHandler(this, ws);
+    ws.playerTracker.clientOrigin = ws.upgradeReq.headers.origin;
     ws.playerCommand = new PlayerCommand(this, ws.playerTracker);
     
     var self = this;
