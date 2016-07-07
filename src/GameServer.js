@@ -500,7 +500,7 @@ GameServer.prototype.sendChatMessage = function (from, to, message) {
         var client = this.clients[i];
         if (client == null) continue;
         if (to == null || to == client.playerTracker)
-            client.sendPacket(new Packet.ChatMessage(from, message));
+            client.sendPacket(new Packet.ChatMessage(this, from, message));
     }
 }; 
 
