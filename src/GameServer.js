@@ -72,6 +72,7 @@ function GameServer() {
         serverName: 'MultiOgar #1', // Server name
         serverWelcome1: 'Welcome to MultiOgar server!',      // First server welcome message
         serverWelcome2: '',         // Second server welcome message (for info, etc)
+	serverAdminIP: 0,  	    // serverAdminIP: Change this IP to the IP of whom you want to be owner. 0 = no one is identified as admin
         
         borderWidth: 14142,         // Map border size (Vanilla value: 14142)
         borderHeight: 14142,        // Map border size (Vanilla value: 14142)
@@ -499,7 +500,7 @@ GameServer.prototype.sendChatMessage = function (from, to, message) {
         var client = this.clients[i];
         if (client == null) continue;
         if (to == null || to == client.playerTracker)
-            client.sendPacket(new Packet.ChatMessage(from, message));
+            client.sendPacket(new Packet.ChatMessage(this, from, message));
     }
 }; 
 
