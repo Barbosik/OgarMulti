@@ -2,7 +2,8 @@
 var BinaryWriter = require("./BinaryWriter");
 
 
-function ChatMessage(sender, message) {
+function ChatMessage(gameServer, sender, message) {
+    this.gameServer = gameServer;
     this.sender = sender;
     this.message = message;
 }
