@@ -5,9 +5,10 @@ function Cell(gameServer, owner, position, size) {
     this.tickOfBirth = 0;
     this.color = { r: 0, g: 0, b: 0 };
     this.position = { x: 0, y: 0 };
-    this._size = 0;
-    this._mass = 0;
-    this._sizeSquared = 0;
+    this._size = null;
+    this._sizeSquared = null;
+    this._mass = null;
+    this._speed = null;
     this.cellType = -1;     // 0 = Player Cell, 1 = Food, 2 = Virus, 3 = Ejected Mass
     this.isSpiked = false;  // If true, then this cell has spikes around it
     this.isAgitated = false;// If true, then this cell has waves on it's outline
@@ -53,9 +54,11 @@ Cell.prototype.setSize = function (size) {
     if (isNaN(size)) {
         throw new TypeError("Cell.setSize: size is NaN");
     }
+    if (this._size === size) return;
     this._size = size;
     this._sizeSquared = size * size;
-    this._mass = this._sizeSquared / 100;
+    this._mass = null;
+    this._speed = null;
     if (this.owner)
         this.owner.massChanged();
 };
@@ -64,18 +67,24 @@ Cell.prototype.getSize = function() {
     return this._size;
 };
 
-Cell.prototype.getMass = function () {
-    return this._mass;
-};
-
 Cell.prototype.getSizeSquared = function () {
     return this._sizeSquared;
 };
 
+Cell.prototype.getMass = function () {
+    if (this._mass == null) {
+        this._mass = this.getSizeSquared() / 100;    
+    }    
+    return this._mass;
+};
+
 Cell.prototype.getSpeed = function() {
-    var speed = 2.1106 / Math.pow(this.getSize(), 0.449);
-    // tickStep=40ms
-    return speed * 40 * this.gameServer.config.playerSpeed;
+    if (this._speed == null) {
+        var speed = 2.1106 / Math.pow(this.getSize(), 0.449);
+        // tickStep=40ms
+        this._speed = speed * 40 * this.gameServer.config.playerSpeed;
+    }
+    return this._speed;
 };
 
 Cell.prototype.setAngle = function(angle) {

@@ -105,6 +105,10 @@ Commands.list = {
             
             // Check for invalid decimal numbers of the IP address
             for (var i in ipParts) {
+                if (i > 1 && ipParts[i] == "*") {
+                    // mask for sub-net
+                    continue;
+                }
                 // If not numerical or if it's not between 0 and 255
                 // TODO: Catch string "e" as it means "10^".
                 if (isNaN(ipParts[i]) || ipParts[i] < 0 || ipParts[i] >= 256) {
@@ -471,8 +475,10 @@ Commands.list = {
         Logger.info("Showing " + gameServer.clients.length + " players: ");
         console.log(" ID     | IP              | P | " + fillChar('NICK', ' ', gameServer.config.playerMaxNickLength) + " | CELLS | SCORE  | POSITION    "); // Fill space
         console.log(fillChar('', '-', ' ID     | IP              |   |  | CELLS | SCORE  | POSITION    '.length + gameServer.config.playerMaxNickLength));
-        for (var i = 0; i < gameServer.clients.length; i++) {
-            var socket = gameServer.clients[i];
+        var sockets = gameServer.clients.slice(0);
+        sockets.sort(function (a, b) { return a.playerTracker.pID - b.playerTracker.pID; });
+        for (var i = 0; i < sockets.length; i++) {
+            var socket = sockets[i];
             var client = socket.playerTracker;
 
             // ID with 3 digits length

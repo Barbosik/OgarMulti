@@ -1,7 +1,7 @@
 # MultiOgar
 Ogar game server with fast and smooth vanilla physics and multi-protocol support.
 
-Current version: **1.2.8**
+Current version: **1.2.22**
 
 ## Project Info
 ![Language](https://img.shields.io/badge/language-node.js-yellow.svg)
@@ -80,16 +80,17 @@ This lists Ogar clients and server trackers that I found on internet.
 URL | Description
 --- | ---
 http://ogar.mivabe.nl/master | MivaBe, tracks a lot of servers
+http://c0nsume.me/tracker.php | c0nsume.me server tracker
 
 Now you can allow MultiOgar to be listed on a server tracker.
 Just set `serverTracker = 1` in the gameserver.ini, and your server will appear
-on this page: http://ogar.mivabe.nl/master
+on these pages: http://ogar.mivabe.nl/master , http://c0nsume.me/tracker.php
 If you don't want to include your server to tracker list, 
 just set `serverTracker = 0` and the server will not ping the server tracker.
 
 
 ###Ogar clients
-Just replace `127.0.0.1:50000` in the url to the server IP and port to play.
+Just replace `127.0.0.1:443` in the url to the server IP and port to play.
 
 URL | Protocol | Description
 --- | --- | ---
@@ -102,6 +103,7 @@ http://c0nsume.me/private4.php?ip=127.0.0.1:443 | 5 | vanilla style
 
 IP | Location | Game Mode | Web Site
 --- | --- | --- | ---
+146.185.167.9:443 | Netherlands | FFA | Test server (report issues here) http://agar.io/?ip=bubble-wars.tk:443
 vps.simonorj.com:24270 | USA | Instant Merge | https://redd.it/4mufge
 164.132.48.230:600 | France | FFA | http://c0nsume.me/private4.php?ip=164.132.48.230:600
 149.202.87.51:443 | Paris |	FFA	| http://agarlist.com/
@@ -110,6 +112,10 @@ vps.simonorj.com:24270 | USA | Instant Merge | https://redd.it/4mufge
 
 
 ## What's new:
+* Added support for secure websocket connections (TLS)
+* Fixed mass decay
+* Added ejectSizeLoss
+* Added sub-net ban feature (use `ban xx.xx.xx.*` or `ban xx.xx.*.*` to ban entire sub-network)
 * Added performance optimizations, now up to 700 bots with no lags at all
 * Fixed bug when some cell split/eject were shown with delay for some clients
 * Added a lot of protocol optimizations, now server works with no lags at all even with 64 connected players
