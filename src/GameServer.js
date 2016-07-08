@@ -1213,9 +1213,8 @@ GameServer.prototype.ejectMass = function(client) {
         if (cell.getSize() < this.config.playerMinSplitSize) {
             continue;
         }
-        var size1 = cell.getSize() - this.config.ejectSizeLoss;
         var size2 = this.config.ejectSize;
-        var sizeSquared = size1 * size1 - size2 * size2;
+        var sizeSquared = cell.getSizeSquared() - size2 * size2 - this.config.ejectSizeLoss * this.config.ejectSizeLoss;
         if (sizeSquared < this.config.playerMinSize * this.config.playerMinSize) {
             continue;
         }
