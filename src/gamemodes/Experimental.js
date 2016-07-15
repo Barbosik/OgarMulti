@@ -96,13 +96,17 @@ Experimental.prototype.onTick = function(gameServer) {
     } else {
         this.tickMotherSpawn++;
     }
-    if (this.tickMotherUpdate >= this.motherUpdateInterval) {
-        this.tickMotherUpdate = 0;
-        for (var i = 0; i < this.nodesMother.length; i++) {
-            this.nodesMother[i].onUpdate();
-        }
-    } else {
-        this.tickMotherUpdate++;
-    }
+	for (var i = 0; i < this.nodesMother.length; i++) {
+		// Mothercell has been fed, update now.
+		var mothercell = this.nodesMother[i];
+		if (mothercell.getSize() > 149) this.nodesMother[i].onUpdate();
+		else {
+			// Update mothercells regularly.
+			if (this.tickMotherUpdate >= this.motherUpdateInterval) {
+				this.tickMotherUpdate = 0;
+				mothercell.onUpdate();
+			} else this.tickMotherUpdate++;
+		}
+	}
 };
 
