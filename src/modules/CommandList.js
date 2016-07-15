@@ -52,6 +52,7 @@ Commands.list = {
         console.log("playerlist                   : get list of players and bots");
         console.log("pause                        : pause game , freeze all cells");
         console.log("reload                       : reload config");
+        console.log("skin [PlayerID] [skin]       : change cell(s) skin by client ID");
         console.log("status                       : get server status");
         console.log("tp [PlayerID] [X] [Y]        : teleport player to specified location");
         console.log("unban [IP]                   : unban an IP");
@@ -578,6 +579,31 @@ Commands.list = {
         gameServer.loadConfig();
         gameServer.loadIpBanList();
         console.log("Reloaded the config file successfully");
+    },
+    skin: function (gameServer, split) {
+        // Validation checks
+        var id = parseInt(split[1]);
+        if (isNaN(id)) {
+            Logger.warn("Please specify a valid player ID!");
+            return;
+        }
+        var skin = split[2];
+        if (typeof skin == 'undefined') {
+            Logger.warn("Please type a valid name");
+            return;
+        }
+        // Change name
+        for (var i = 0; i < gameServer.clients.length; i++) {
+            var client = gameServer.clients[i].playerTracker;
+
+            if (client.pID == id) {
+                console.log("Changing " + client.getFriendlyName() + "'s skin to " + skin);
+                client.setSkin(skin);
+                return;
+            }
+        }
+        // Error
+        Logger.warn("Player " + id + " was not found");
     },
     status: function (gameServer, split) {
         // Get amount of humans/bots
