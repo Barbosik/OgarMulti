@@ -9,7 +9,8 @@
     "dependencies": {
         "quad-node": "^1.0.5",
         "vector2-node": "latest",
-        "ws": "latest"
+        "ws": "latest",
+        "uws": "latest"
     },
     "devDependencies": {},
     "scripts": {
