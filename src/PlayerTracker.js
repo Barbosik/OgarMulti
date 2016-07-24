@@ -25,19 +25,19 @@ function PlayerTracker(gameServer, socket) {
     this._scale = 1;
     this.isMassChanged = true;
     this.borderCounter = 0;
-    
+
     this.mouse = {
         x: 0,
         y: 0
     };
     this.tickLeaderboard = 0;
-    
+
     this.team = 0;
     this.spectate = false;
     this.freeRoam = false;      // Free-roam mode enables player to move in spectate mode
     this.spectateTarget = null; // Spectate target, null for largest player
     this.lastSpectateSwitchTick = 0;
-    
+
     this.centerPos = {
         x: 0,
         y: 0
@@ -52,17 +52,17 @@ function PlayerTracker(gameServer, socket) {
         halfWidth: 0,
         halfHeight: 0
     };
-    
+
     // Scramble the coordinate system for anti-raga
     this.scrambleX = 0;
     this.scrambleY = 0;
     this.scrambleId = 0;
-    
+
     this.connectedTime = new Date;
     this.isMinion = false;
     this.spawnCounter = 0;
     this.isMuted = false;
-    
+
     // Gamemode function
     if (gameServer) {
         this.centerPos.x = gameServer.border.centerx;
@@ -217,7 +217,7 @@ PlayerTracker.prototype.joinGame = function (name, skin) {
     this.spectate = false;
     this.freeRoam = false;
     this.spectateTarget = null;
-    
+
     // some old clients don't understand ClearAll message
     // so we will send update for them
     if (this.socket.packetHandler.protocol < 6) {
@@ -285,17 +285,17 @@ PlayerTracker.prototype.updateTick = function () {
         this.pressSpace();
         this.socket.packetHandler.pressSpace = false;
     }
-    
+
     if (this.socket.packetHandler.pressW) { // Eject mass
         this.pressW();
         this.socket.packetHandler.pressW = false;
     }
-    
+
     if (this.socket.packetHandler.pressQ) { // Q Press
         this.pressQ();
         this.socket.packetHandler.pressQ = false;
     }
-    
+
     if (this.spectate) {
         if (this.freeRoam || this.getSpectateTarget() == null) {
             // free roam
@@ -314,16 +314,16 @@ PlayerTracker.prototype.updateTick = function () {
 };
 
 PlayerTracker.prototype.sendUpdate = function () {
-    if (this.isRemoved|| 
+    if (this.isRemoved||
         !this.socket.packetHandler.protocol ||
-        !this.socket.isConnected || 
-        !this.socket._socket.writable || 
+        !this.socket.isConnected ||
+        (this.socket._socket.writable !== undefined && !this.socket._socket.writable) || 
         this.socket.readyState != this.socket.OPEN) {
         // do not send update for disconnected clients
         // also do not send if initialization is not complete yet
         return;
     }
-    
+
     if (this.spectate) {
         if (!this.freeRoam) {
             // spectate target
@@ -337,7 +337,7 @@ PlayerTracker.prototype.sendUpdate = function () {
         }
         this.sendCameraPacket();
     }
-    
+
     if (this.gameServer.config.serverScrambleLevel == 2) {
         // scramble (moving border)
         if (this.borderCounter == 0) {
@@ -353,7 +353,7 @@ PlayerTracker.prototype.sendUpdate = function () {
         if (this.borderCounter >= 20)
             this.borderCounter = 0;
     }
-    
+
     var delNodes = [];
     var eatNodes = [];
     var addNodes = [];
@@ -395,15 +395,15 @@ PlayerTracker.prototype.sendUpdate = function () {
         oldIndex++;
     }
     this.clientNodes = this.viewNodes;
-    
+
     // Send packet
     this.socket.sendPacket(new Packet.UpdateNodes(
-        this, 
-        addNodes, 
-        updNodes, 
-        eatNodes, 
+        this,
+        addNodes,
+        updNodes,
+        eatNodes,
         delNodes));
-    
+
     // Update leaderboard
     if (++this.tickLeaderboard > 25) {
         // 1 / 0.040 = 25 (once per second)
@@ -438,17 +438,17 @@ PlayerTracker.prototype.updateCenterFreeRoam = function () {
     var dy = this.mouse.y - this.centerPos.y;
     var squared = dx * dx + dy * dy;
     if (squared < 1) return;     // stop threshold
-    
+
     // distance
     var d = Math.sqrt(squared);
-    
+
     var invd = 1 / d;
     var nx = dx * invd;
     var ny = dy * invd;
-    
+
     var speed = Math.min(d, 32);
     if (speed <= 0) return;
-    
+
     var x = this.centerPos.x + nx * speed;
     var y = this.centerPos.y + ny * speed;
     this.setCenterPos(x, y);
@@ -479,7 +479,7 @@ PlayerTracker.prototype.pressQ = function () {
         if (tick - this.lastSpectateSwitchTick < 40)
             return;
         this.lastSpectateSwitchTick = tick;
-        
+
         if (this.spectateTarget == null) {
             this.freeRoam = !this.freeRoam;
         }
@@ -503,7 +503,7 @@ PlayerTracker.prototype.pressSpace = function () {
         if (tick - this.lastSpectateSwitchTick < 40)
             return;
         this.lastSpectateSwitchTick = tick;
-        
+
         // Space doesn't work for freeRoam mode
         if (this.freeRoam || this.gameServer.largestClient == null)
             return;
