@@ -665,6 +665,7 @@ GameServer.prototype.mainLoop = function () {
     // Loop main functions
     if (this.run) {
         this.updateMoveEngine();
+        this.remergeTick();
         if ((this.getTick() % this.config.spawnInterval) == 0) {
             this.updateFood();  // Spawn food
             this.updateVirus(); // Spawn viruses
@@ -742,47 +743,40 @@ GameServer.prototype.spawnVirus = function () {
     this.addNode(v);
 };
 
-GameServer.prototype.spawnPlayer = function (player, pos, size) {
+GameServer.prototype.spawnPlayer = function (player) {
+    // Get color, pos, and size
+    var color = this.getRandomColor();
+    var pos = this.getRandomPosition();
+    var size = this.config.playerStartSize;
+
     // Check if can spawn from ejected mass
-    if (!pos && this.config.ejectSpawnPlayer && this.nodesEjected.length > 0) {
+    if (this.config.ejectSpawnPlayer && this.nodesEjected.length > 0) {
         if (Math.random() >= 0.5) {
             // Spawn from ejected mass
             var index = (this.nodesEjected.length - 1) * Math.random() >>> 0;
             var eject = this.nodesEjected[index];
-            if (!eject.isRemoved) {
+            if (!eject.isRemoved && !eject.isMoving) {
                 this.removeNode(eject);
                 pos = {
                     x: eject.position.x,
                     y: eject.position.y
                 };
-                if (!size) {
-                    size = Math.max(eject.getSize(), this.config.playerStartSize);
-                }
+                if (!size) size = Math.max(eject.getSize(), this.config.playerStartSize);
+                color = eject.getColor();
             }
         }
     }
-    if (pos == null) {
-        // Get random pos
-        var pos = this.getRandomPosition();
-        // 10 attempts to find safe position
-        for (var i = 0; i < 10 && this.willCollide(pos, this.config.playerMinSize); i++) {
-            pos = this.getRandomPosition();
-        }
+
+    // 10 attempts to find safe position
+    for (var i = 0; i < 10 && this.willCollide(pos, this.config.playerMinSize); i++) {
+        pos = this.getRandomPosition();
     }
-    if (size == null) {
-        // Get starting mass
-        size = this.config.playerStartSize;
-    }
+     
+    player.setColor(player.isMinion ? { r: 240, g: 240, b: 255 } : color);
     
     // Spawn player and add to world
     var cell = new Entity.PlayerCell(this, player, pos, size);
     this.addNode(cell);
-    
-    // Set initial mouse coords
-    player.mouse = {
-        x: pos.x,
-        y: pos.y
-    };
 };
 
 GameServer.prototype.willCollide = function (pos, size) {
@@ -798,6 +792,17 @@ GameServer.prototype.willCollide = function (pos, size) {
         function (item) {
             return item.cell.cellType == 0; // check players only
         });
+};
+
+GameServer.prototype.remergeTick = function () {
+     for (var i in this.clients) {
+	  var client = this.clients[i].playerTracker;
+	  for (var j = 0; j < client.cells.length; j++) {
+               var cell1 = client.cells[j];
+	       if (cell1 === null || cell1.isRemoved) continue;
+	       cell1.updateRemerge(this);
+	  }
+     }
 };
 
 // Checks cells for collision.
@@ -969,7 +974,6 @@ GameServer.prototype.updateMoveEngine = function () {
             var cell1 = client.cells[j];
             if (cell1.isRemoved)
                 continue;
-            cell1.updateRemerge(this);
             cell1.moveUser(this.border);
             cell1.move(this.border);
 
