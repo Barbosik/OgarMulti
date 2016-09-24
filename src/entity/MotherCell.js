@@ -30,7 +30,8 @@ MotherCell.prototype.onEaten = Virus.prototype.onEaten; // Copies the virus prot
 
 MotherCell.prototype.onUpdate = function () {
     if (this.getSize() <= this.motherCellMinSize) {
-        return;
+        if (Math.random()*(7) > 1)
+            return;
     }
     var maxFood = this.gameServer.config.foodMaxAmount;
     if (this.gameServer.currentFood >= maxFood) {
