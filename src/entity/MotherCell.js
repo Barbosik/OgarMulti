@@ -20,13 +20,13 @@ module.exports = MotherCell;
 MotherCell.prototype = new Cell();
 
 // Main Functions
+MotherCell.prototype.onEaten = Virus.prototype.onEaten; // Copies the virus prototype function
 
 MotherCell.prototype.canEat = function (cell) {
-    return cell.cellType == 0 ||    // can eat player cell
-        cell.cellType == 3;         // can eat ejected mass
+    return cell.cellType == 0 ||  // can eat player cell
+           cell.cellType == 2 ||  // can eat virus
+           cell.cellType == 3;    // can eat ejected mass
 };
-
-MotherCell.prototype.onEaten = Virus.prototype.onEaten; // Copies the virus prototype function
 
 MotherCell.prototype.onUpdate = function () {
     if (this.getSize() <= this.motherCellMinSize) {

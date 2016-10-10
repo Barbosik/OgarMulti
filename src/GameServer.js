@@ -1,4 +1,4 @@
-﻿// Library imports
+// Library imports
 var http = require('http');
 var fs = require("fs");
 var os = require('os');
@@ -64,7 +64,7 @@ function GameServer() {
         
         serverTimeout: 300,         // Seconds to keep connection alive for non-responding client
         serverWsModule: 'ws',       // WebSocket module: 'ws' or 'uws' (install npm package before using uws)
-        serverMaxConnections: 64,   // Maximum number of connections to the server. (0 for no limit)
+        serverMaxConnections: 128,   // Maximum number of connections to the server. (0 for no limit)
         serverIpLimit: 4,           // Maximum number of connections from the same IP (0 for no limit)
         serverMinionIgnoreTime: 30, // minion detection disable time on server startup [seconds]
         serverMinionThreshold: 10,  // max connections within serverMinionInterval time period, which will not be marked as minion
@@ -116,7 +116,7 @@ function GameServer() {
         playerMinSplitSize: 60,     // Minimum player cell size allowed to split (mass = 60*60/100 = 36) 
         playerStartSize: 64,        // Start size of the player cell (mass = 64*64/100 = 41)
         playerMaxCells: 16,         // Max cells the player is allowed to have
-        playerSpeed: 1,             // Player speed multiplier
+        playerSpeed: 0.5,             // Player speed multiplier
         playerDecayRate: .002,      // Amount of player cell size lost per second
         playerRecombineTime: 30,    // Base time in seconds before a cell is allowed to recombine
         playerMaxNickLength: 15,    // Maximum nick length
@@ -665,6 +665,7 @@ GameServer.prototype.mainLoop = function () {
     // Loop main functions
     if (this.run) {
         this.updateMoveEngine();
+        this.remergeTick();
         if ((this.getTick() % this.config.spawnInterval) == 0) {
             this.updateFood();  // Spawn food
             this.updateVirus(); // Spawn viruses
@@ -783,6 +784,17 @@ GameServer.prototype.spawnPlayer = function (player, pos, size) {
         x: pos.x,
         y: pos.y
     };
+};
+
+GameServer.prototype.remergeTick = function () {
+    for (var i in this.clients) {
+        var client = this.clients[i].playerTracker;
+        for (var j = 0; j < client.cells.length; j++) {
+            var cell1 = client.cells[j];
+            if (cell1 === null || cell1.isRemoved) continue;
+            cell1.updateRemerge(this);
+        }
+    }
 };
 
 GameServer.prototype.willCollide = function (pos, size) {
@@ -923,7 +935,7 @@ GameServer.prototype.resolveCollision = function (manifold) {
             }
         }
         // Size check
-        if (maxCell.getSize() <= minCell.getSize() * 1.15) {
+        if (maxCell.getSize() <= minCell.getSize() * 1.10) {
             // too large => can't eat
             return;
         }
@@ -969,7 +981,6 @@ GameServer.prototype.updateMoveEngine = function () {
             var cell1 = client.cells[j];
             if (cell1.isRemoved)
                 continue;
-            cell1.updateRemerge(this);
             cell1.moveUser(this.border);
             cell1.move(this.border);
 
@@ -1035,14 +1046,13 @@ GameServer.prototype.updateMoveEngine = function () {
     }
     
     // resolve rigid body collisions
-    ////for (var z = 0; z < 2; z++) { // loop for better rigid body resolution quality (slow)
         for (var k = 0; k < rigidCollisions.length; k++) {
             var c = rigidCollisions[k];
             var manifold = this.checkCellCollision(c.cell1, c.cell2);
             if (manifold == null) continue;
             this.resolveRigidCollision(manifold, this.border);
         }
-    ////}
+    
     // Update quad tree
     for (var k = 0; k < rigidCollisions.length; k++) {
         var c = rigidCollisions[k];
@@ -1059,8 +1069,6 @@ GameServer.prototype.updateMoveEngine = function () {
         this.resolveCollision(manifold);
     }
     eatCollisions = null;
-    
-    //this.gameMode.onCellMove(cell1, this);
     
     // Scan for ejected cell collisions (scan for ejected or virus only)
     rigidCollisions = [];
@@ -1117,105 +1125,6 @@ GameServer.prototype.updateMoveEngine = function () {
         if (manifold == null) continue;
         this.resolveCollision(manifold);
     }
-};
-
-// Returns masses in descending order
-GameServer.prototype.splitMass = function (mass, count) {
-    // min throw size (vanilla 44)
-    var throwSize = this.config.playerMinSize + 12;
-    var throwMass = throwSize * throwSize / 100;
-    
-    // check maxCount
-    var maxCount = count;
-    var curMass = mass;
-    while (maxCount > 1 && curMass / (maxCount - 1) < throwMass) {
-        maxCount = maxCount / 2 >>> 0;
-    }
-    if (maxCount < 2) {
-        return [mass];
-    }
-    
-    // calculate mass
-    var minMass = this.config.playerMinSize * this.config.playerMinSize / 100;
-    var splitMass = curMass / maxCount;
-    if (splitMass < minMass) {
-        return [mass];
-    }
-    var masses = [];
-    if (maxCount < 3 || maxCount < count || curMass / throwMass <= 30) {
-        // Monotone blow up
-        for (var i = 0; i < maxCount; i++) {
-            masses.push(splitMass);
-        }
-    } else {
-        // Diverse blow up
-        // Barbosik: draft version
-        var restCount = maxCount;
-        while (restCount > 2) {
-            var splitMass = curMass / 2;
-            if (splitMass <= throwMass) {
-                break;
-            }
-            var max = curMass - throwMass * (restCount - 1);
-            if (max <= throwMass || splitMass >= max) {
-                break;
-            }
-            masses.push(splitMass);
-            curMass -= splitMass;
-            restCount--;
-        }
-        var splitMass = curMass / 4;
-        if (splitMass > throwMass) {
-            while (restCount > 2) {
-                var max = curMass - throwMass * (restCount - 1);
-                if (max <= throwMass || splitMass >= max) {
-                    break;
-                }
-                masses.push(splitMass);
-                curMass -= splitMass;
-                restCount--;
-            }
-        }
-        var splitMass = curMass / 8;
-        if (splitMass > throwMass) {
-            while (restCount > 2) {
-                var max = curMass - throwMass * (restCount - 1);
-                if (max <= throwMass || splitMass >= max) {
-                    break;
-                }
-                masses.push(splitMass);
-                curMass -= splitMass;
-                restCount--;
-            }
-        }
-        if (restCount > 1) {
-            splitMass = curMass - throwMass * (restCount - 1);
-            if (splitMass > throwMass) {
-                masses.push(splitMass);
-                curMass -= splitMass;
-                restCount--;
-            }
-        }
-        if (restCount > 0) {
-            splitMass = curMass / restCount;
-            if (splitMass < throwMass - 0.001) {
-                Logger.warn("GameServer.splitMass: throwMass-splitMass = " + (throwMass - splitMass).toFixed(3) + " (" + mass.toFixed(4) + ", " + count + ")");
-            }
-            while (restCount > 0) {
-                masses.push(splitMass);
-                restCount--;
-            }
-        }
-    }
-    //Logger.debug("===GameServer.splitMass===");
-    //Logger.debug("mass = " + mass.toFixed(3) + "  |  " + Math.sqrt(mass * 100).toFixed(3));
-    //var sum = 0;
-    //for (var i = 0; i < masses.length; i++) {
-    //    Logger.debug("mass[" + i + "] = " + masses[i].toFixed(3) + "  |  " + Math.sqrt(masses[i] * 100).toFixed(3));
-    //    sum += masses[i]
-    //}
-    //Logger.debug("sum  = " + sum.toFixed(3) + "  |  " + Math.sqrt(sum * 100).toFixed(3));
-    return masses;
 };
 
 GameServer.prototype.splitCells = function (client) {
@@ -1427,7 +1336,7 @@ GameServer.prototype.checkSkinName = function (skinName) {
     if (skinName.length == 1 || skinName.length > 25) {
         return false;
     }
-    if (skinName[0] != '%' /* && skinName[0] != ':' */) {
+    if (skinName[0] != '%') {
         return false;
     }
     for (var i = 1; i < skinName.length; i++) {

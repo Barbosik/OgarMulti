@@ -75,7 +75,7 @@ PlayerCell.prototype.moveUser = function (border) {
     var ny = dy * invd;
     
     // normalized distance (0..1)
-    d = Math.min(d, 32) / 32;
+    d = Math.min(d, 64) / 32;
     var speed = this.getSpeed() * d;
     if (speed <= 0) return;
     

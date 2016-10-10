@@ -16,7 +16,7 @@ function Experimental() {
     
     // Config
     this.motherSpawnInterval = 25 * 5;  // How many ticks it takes to spawn another mother cell (5 seconds)
-    this.motherUpdateInterval = 5;     // How many ticks it takes to spawn mother food (1 second)
+    this.motherUpdateInterval = 2;     // How many ticks it takes to spawn mother food (1 second)
     this.motherMinAmount = 20;
     this.motherMaxAmount = 30;
 }
