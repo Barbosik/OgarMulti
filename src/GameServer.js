@@ -742,14 +742,18 @@ GameServer.prototype.spawnVirus = function () {
     this.addNode(v);
 };
 
-GameServer.prototype.spawnPlayer = function (player, pos, size) {
+GameServer.prototype.spawnPlayer = function (player) {
+    // Get pos, size, and color
+    var pos = this.getRandomPosition();
+    var size = this.config.playerStartSize;
+    var color = this.getRandomColor();
     // Check if can spawn from ejected mass
-    if (!pos && this.config.ejectSpawnPlayer && this.nodesEjected.length > 0) {
+    if (this.config.ejectSpawnPlayer && this.nodesEjected.length > 0) {
         if (Math.random() >= 0.5) {
             // Spawn from ejected mass
             var index = (this.nodesEjected.length - 1) * Math.random() >>> 0;
             var eject = this.nodesEjected[index];
-            if (!eject.isRemoved) {
+            if (!eject.isRemoved && eject.boostDistance === 0) {
                 this.removeNode(eject);
                 pos = {
                     x: eject.position.x,
@@ -758,21 +762,17 @@ GameServer.prototype.spawnPlayer = function (player, pos, size) {
                 if (!size) {
                     size = Math.max(eject.getSize(), this.config.playerStartSize);
                 }
+                color = eject.getColor();
             }
         }
     }
-    if (pos == null) {
-        // Get random pos
-        var pos = this.getRandomPosition();
-        // 10 attempts to find safe position
-        for (var i = 0; i < 10 && this.willCollide(pos, this.config.playerMinSize); i++) {
-            pos = this.getRandomPosition();
-        }
+
+    // 10 attempts to find safe position
+    for (var i = 0; i < 10 && this.willCollide(pos, this.config.playerMinSize); i++) {
+        pos = this.getRandomPosition();
     }
-    if (size == null) {
-        // Get starting mass
-        size = this.config.playerStartSize;
-    }
+    
+    player.setColor(player.isMinion ? { r: 240, g: 240, b: 255 } : color);
     
     // Spawn player and add to world
     var cell = new Entity.PlayerCell(this, player, pos, size);
