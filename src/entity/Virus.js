@@ -17,7 +17,7 @@ Virus.prototype = new Cell();
 // Main Functions
 
 Virus.prototype.canEat = function (cell) {
-    return cell.cellType == 3; // virus can eat ejected mass only
+    return cell.cellType == 3 && this.gameServer.nodesVirus.length < this.gameServer.config.virusMaxAmount; // virus can eat ejected mass only
 };
 
 Virus.prototype.onEat = function (prey) {
