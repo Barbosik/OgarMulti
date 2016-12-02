@@ -1,9 +1,6 @@
-﻿// Import
-var BinaryWriter = require("./BinaryWriter");
-
 function ServerStat(playerTracker) {
     this.playerTracker = playerTracker;
-};
+}
 
 module.exports = ServerStat;
 
@@ -35,6 +32,7 @@ ServerStat.prototype.build = function (protocol) {
     };
     var json = JSON.stringify(obj);
     // Serialize
+    var BinaryWriter = require("./BinaryWriter");
     var writer = new BinaryWriter();
     writer.writeUInt8(254);             // Message Id
     writer.writeStringZeroUtf8(json);   // JSON

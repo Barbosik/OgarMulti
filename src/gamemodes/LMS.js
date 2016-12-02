@@ -1,12 +1,13 @@
 var FFA = require('./FFA'); // Base gamemode
 var Entity = require('../entity');
-var Logger = require('../modules/Logger');
+//LMS or "Last Man Standing"
+//After a set time interval the Server will not allow players to spawn and will only let them specate
+//Some time later, the Server will disconnect all players and restart the cycle.
 
-function Experimental() {
+function LMS () {
     FFA.apply(this, Array.prototype.slice.call(arguments));
-    
-    this.ID = 2;
-    this.name = "Experimental";
+    this.ID = 21;
+    this.name = "LMS";
     this.specByLeaderboard = true;
     
     // Gamemode Specific Variables
@@ -16,16 +17,19 @@ function Experimental() {
     
     // Config
     this.motherSpawnInterval = 25 * 5;  // How many ticks it takes to spawn another mother cell (5 seconds)
-    this.motherUpdateInterval = 2;     // How many ticks it takes to spawn mother food (1 second)
+    this.motherUpdateInterval = 2;      // How many ticks it takes to spawn mother food (1 second)
     this.motherMinAmount = 20;
+    
+    // Whether last man standing has started or not
+    this.lmsStart = false;
 }
 
-module.exports = Experimental;
-Experimental.prototype = new FFA();
+module.exports = LMS;
+LMS.prototype = new FFA();
 
 // Gamemode Specific Functions
 
-Experimental.prototype.spawnMotherCell = function (gameServer) {
+LMS.prototype.spawnMotherCell = function (gameServer) {
     // Checks if there are enough mother cells on the map
     if (this.nodesMother.length >= this.motherMinAmount) {
         return;
@@ -43,11 +47,11 @@ Experimental.prototype.spawnMotherCell = function (gameServer) {
 
 // Override
 
-Experimental.prototype.onServerInit = function (gameServer) {
+LMS.prototype.onServerInit = function (gameServer) {
     // Called when the server starts
     gameServer.run = true;
-    
-    // Ovveride functions for special virus mechanics
+
+    // Override for special virus mechanics
     var self = this;
     Entity.Virus.prototype.onEat = function (prey) {
         // Pushes the virus
@@ -62,9 +66,39 @@ Experimental.prototype.onServerInit = function (gameServer) {
         if (index != -1) 
             self.nodesMother.splice(index, 1);
     };
+    var short = gameServer.config.lastManStandingShortest * 60000;
+    var long = gameServer.config.lastManStandingLongest * 60000;
+    var shortkick = gameServer.config.lastManStandingKickShortest * 60000;
+    var longkick = gameServer.config.lastManStandingKickLongest * 60000;
+    var time = Math.floor((Math.random() * (long - short)) + short);
+    var kickingTime = Math.floor((Math.random() * (longkick - shortkick)) + shortkick);
+    var endInt = setInterval(function() {self.lmsKick()}, kickingTime);
+    var startInt = setInterval(function() {self.lmsBegin()}, time);
 };
 
-Experimental.prototype.onTick = function (gameServer) {
+LMS.prototype.onPlayerSpawn = function (gameServer, player) {
+    // Only spawn players if LMS hasnt started yet
+    if (!this.lmsStart) {
+        // Random color upon spawning
+        player.setColor(gameServer.getRandomColor()); 
+        gameServer.spawnPlayer(player);
+    }
+};
+	
+LMS.prototype.onPlayerDeath = function (gameServer){
+};
+	
+LMS.prototype.lmsKick = function (gameServer, player) {
+    this.lmsStart = false;
+    console.log("You can now join");
+};
+
+LMS.prototype.lmsBegin = function () {
+    this.lmsStart = true;
+    console.log("LMS HAS STARTED!");
+};
+
+LMS.prototype.onTick = function (gameServer) {
     // Mother Cell Spawning
     if (this.tickMotherSpawn >= this.motherSpawnInterval) {
         this.tickMotherSpawn = 0;

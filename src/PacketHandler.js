@@ -1,4 +1,3 @@
-﻿var pjson = require('../package.json');
 var Packet = require('./packet');
 var BinaryReader = require('./packet/BinaryReader');
 
@@ -14,12 +13,10 @@ function PacketHandler(gameServer, socket) {
     this.lastWTick = 0;
     this.lastQTick = 0;
     this.lastSpaceTick = 0;
-    
     this.pressQ = false;
     this.pressW = false;
     this.pressSpace = false;
     this.mouseData = null;
-
     this.handler = {
         254: this.handshake_onProtocol.bind(this),
     };
@@ -64,17 +61,20 @@ PacketHandler.prototype.handshake_onCompleted = function (protocol, key) {
         16: this.message_onMouse.bind(this),
         17: this.message_onKeySpace.bind(this),
         18: this.message_onKeyQ.bind(this),
-        //19: AFK
         21: this.message_onKeyW.bind(this),
+        22: this.message_onKeyE.bind(this),
+        23: this.message_onKeyR.bind(this),
+        24: this.message_onKeyT.bind(this),
+        25: this.message_onKeyP.bind(this),
         99: this.message_onChat.bind(this),
         254: this.message_onStat.bind(this),
     };
     this.protocol = protocol;
     // Send handshake response
     this.socket.sendPacket(new Packet.ClearAll());
-    this.socket.sendPacket(new Packet.SetBorder(this.socket.playerTracker, this.gameServer.border, this.gameServer.config.serverGamemode, "MultiOgar " + pjson.version));
+    this.socket.sendPacket(new Packet.SetBorder(this.socket.playerTracker, this.gameServer.border, this.gameServer.config.serverGamemode, "MultiOgar-Edited " + this.gameServer.version));
     // Send welcome message
-    this.gameServer.sendChatMessage(null, this.socket.playerTracker, "MultiOgar " + pjson.version);
+    this.gameServer.sendChatMessage(null, this.socket.playerTracker, "MultiOgar-Edited " + this.gameServer.version);
     if (this.gameServer.config.serverWelcome1)
         this.gameServer.sendChatMessage(null, this.socket.playerTracker, this.gameServer.config.serverWelcome1);
     if (this.gameServer.config.serverWelcome2)
@@ -87,7 +87,7 @@ PacketHandler.prototype.handshake_onCompleted = function (protocol, key) {
 
 
 PacketHandler.prototype.message_onJoin = function (message) {
-    var tick = this.gameServer.getTick();
+    var tick = this.gameServer.tickCounter;
     var dt = tick - this.lastJoinTick;
     this.lastJoinTick = tick;
     if (dt < 25 || this.socket.playerTracker.cells.length !== 0) {
@@ -118,41 +118,69 @@ PacketHandler.prototype.message_onMouse = function (message) {
 };
 
 PacketHandler.prototype.message_onKeySpace = function (message) {
-    if (message.length !== 1) return;
-    var tick = this.gameServer.getTick();
-    var dt = tick - this.lastSpaceTick;
-    if (dt < this.gameServer.config.ejectCooldown) {
-        return;
+    if (this.socket.playerTracker.miQ) {
+        this.socket.playerTracker.minionSplit = true;
+    } else {
+        this.pressSpace = true;
     }
-    this.lastSpaceTick = tick;
-    this.pressSpace = true;
 };
 
 PacketHandler.prototype.message_onKeyQ = function (message) {
     if (message.length !== 1) return;
-    var tick = this.gameServer.getTick();
+    var tick = this.gameServer.tickCoutner;
     var dt = tick - this.lastQTick;
     if (dt < this.gameServer.config.ejectCooldown) {
         return;
     }
     this.lastQTick = tick;
-    this.pressQ = true;
+    if (this.socket.playerTracker.minionControl) {
+        if (!this.gameServer.config.disableQ) 
+            this.socket.playerTracker.miQ = !this.socket.playerTracker.miQ;
+    } else {
+        this.pressQ = true;
+    }
 };
 
 PacketHandler.prototype.message_onKeyW = function (message) {
     if (message.length !== 1) return;
-    var tick = this.gameServer.getTick();
+    var tick = this.gameServer.tickCounter;
     var dt = tick - this.lastWTick;
     if (dt < this.gameServer.config.ejectCooldown) {
         return;
     }
     this.lastWTick = tick;
-    this.pressW = true;
+    if (this.socket.playerTracker.miQ) {
+        this.socket.playerTracker.minionEject = true;
+    } else {
+        this.pressW = true;
+    }
+};
+
+PacketHandler.prototype.message_onKeyE = function (message) {
+    if (this.gameServer.config.disableERTP) return;
+    this.socket.playerTracker.minionSplit = true;
+};
+
+PacketHandler.prototype.message_onKeyR = function (message) {
+    if (this.gameServer.config.disableERTP) return;
+    this.socket.playerTracker.minionEject = true;
+};
+
+PacketHandler.prototype.message_onKeyT = function (message) {
+    if (this.gameServer.config.disableERTP) return;
+    this.socket.playerTracker.minionFrozen = !this.socket.playerTracker.minionFrozen;
+};
+
+PacketHandler.prototype.message_onKeyP = function (message) {
+    if (this.gameServer.config.disableERTP) return;
+    if (this.gameServer.config.collectPellets) {
+        this.socket.playerTracker.collectPellets = !this.socket.playerTracker.collectPellets;
+    }
 };
 
 PacketHandler.prototype.message_onChat = function (message) {
     if (message.length < 3) return;
-    var tick = this.gameServer.getTick();
+    var tick = this.gameServer.tickCounter;
     var dt = tick - this.lastChatTick;
     this.lastChatTick = tick;
     if (dt < 25 * 2) {
@@ -176,7 +204,7 @@ PacketHandler.prototype.message_onChat = function (message) {
 
 PacketHandler.prototype.message_onStat = function (message) {
     if (message.length !== 1) return;
-    var tick = this.gameServer.getTick();
+    var tick = this.gameServer.tickCounter;
     var dt = tick - this.lastStatTick;
     this.lastStatTick = tick;
     if (dt < 25) {
@@ -223,7 +251,30 @@ PacketHandler.prototype.process = function () {
         this.socket.playerTracker.pressQ();
         this.pressQ = false;
     }
+    if (this.socket.playerTracker.minionSplit) {
+        this.socket.playerTracker.minionSplit = false;
+    }
+    if (this.socket.playerTracker.minionEject) {
+        this.socket.playerTracker.minionEject = false;
+    }
     this.processMouse();
+};
+
+PacketHandler.prototype.getRandomSkin = function () {
+    var randomSkins = [];
+    var fs = require("fs");
+    if (fs.existsSync("../src/randomskins.txt")) {
+        // Read and parse the Skins - filter out whitespace-only Skins
+        randomSkins = fs.readFileSync("../src/randomskins.txt", "utf8").split(/[\r\n]+/).filter(function (x) {
+            return x != ''; // filter empty Skins
+        });
+    }
+    // Picks a random skin
+    if (randomSkins.length > 0) {
+        var index = (randomSkins.length * Math.random()) >>> 0;
+        var rSkin = randomSkins[index];
+    }
+    return rSkin;
 };
 
 PacketHandler.prototype.setNickname = function (text) {
@@ -234,19 +285,13 @@ PacketHandler.prototype.setNickname = function (text) {
         var userName = text;
         var n = -1;
         if (text[0] == '<' && (n = text.indexOf('>', 1)) >= 1) {
-            if (n > 1)
-                skinName = "%" + text.slice(1, n);
-            else
+            var inner = text.slice(1, n);
+            if (n > 1) {
+                skinName = (inner == "r") ? "%" + this.getRandomSkin() : "%" + inner;
+            } else {
                 skinName = "";
+            }
             userName = text.slice(n + 1);
-        }
-        //else if (text[0] == "|" && (n = text.indexOf('|', 1)) >= 0) {
-        //    skinName = ":http://i.imgur.com/" + text.slice(1, n) + ".png";
-        //    userName = text.slice(n + 1);
-        //}
-        if (skinName && !this.gameServer.checkSkinName(skinName)) {
-            skinName = null;
-            userName = text;
         }
         skin = skinName;
         name = userName;

@@ -1,7 +1,5 @@
-﻿var Entity = require('../entity');
 var Logger = require('./Logger');
 var UserRoleEnum = require("../enum/UserRoleEnum");
-
 
 var ErrorTextInvalidCommand = "ERROR: Unknown command, type /help for command list";
 var ErrorTextBadCommand = "ERROR: Bad command!";
@@ -51,23 +49,42 @@ PlayerCommand.prototype.executeCommandLine = function (commandLine) {
     }
 };
 
+PlayerCommand.prototype.userLogin = function (ip, password) {
+    if (!password) return null;
+    password = password.trim();
+    if (!password) return null;
+    for (var i = 0; i < this.gameServer.userList.length; i++) {
+        var user = this.gameServer.userList[i];
+        if (user.password != password)
+            continue;
+        if (user.ip && user.ip != ip)
+            continue;
+        return user;
+    }
+    return null;
+};
+
 var playerCommands = {
     help: function (args) {
+        if (this.playerTracker.userRole != (UserRoleEnum.ADMIN || UserRoleEnum.MODER || UserRoleEnum.USER)) {
+            this.writeLine("ERROR: access denied!");
+            return;
+        }
         this.writeLine("/skin %shark - change skin");
         this.writeLine("/kill - self kill");
         this.writeLine("/help - this command list");
     },
     skin: function (args) {
+        if (this.playerTracker.userRole != (UserRoleEnum.ADMIN || UserRoleEnum.MODER || UserRoleEnum.USER)) {
+            this.writeLine("ERROR: access denied!");
+            return;
+        }
         if (this.playerTracker.cells.length > 0) {
             this.writeLine("ERROR: Cannot change skin while player in game!");
             return;
         }
         var skinName = "";
         if (args) skinName = args.trim();
-        if (!this.gameServer.checkSkinName(skinName)) {
-            this.writeLine("ERROR: Invalid skin name!");
-            return;
-        }
         this.playerTracker.setSkin(skinName);
         if (skinName == "")
             this.writeLine("Your skin was removed");
@@ -75,6 +92,10 @@ var playerCommands = {
             this.writeLine("Your skin set to " + skinName);
     },
     kill: function (args) {
+        if (this.playerTracker.userRole != (UserRoleEnum.ADMIN || UserRoleEnum.MODER || UserRoleEnum.USER)) {
+            this.writeLine("ERROR: access denied!");
+            return;
+        }
         if (this.playerTracker.cells.length < 1) {
             this.writeLine("You cannot kill yourself, because you're still not joined to the game!");
             return;
@@ -82,10 +103,6 @@ var playerCommands = {
         while (this.playerTracker.cells.length > 0) {
             var cell = this.playerTracker.cells[0];
             this.gameServer.removeNode(cell);
-            // replace with food
-            var food = new Entity.Food(this.gameServer, null, cell.position, this.gameServer.config.playerMinSize);
-            food.setColor(this.gameServer.getGrayColor(cell.getColor()));
-            this.gameServer.addNode(food);
         }
         this.writeLine("You killed yourself");
     },
@@ -95,7 +112,7 @@ var playerCommands = {
             this.writeLine("ERROR: missing password argument!");
             return;
         }
-        var user = this.gameServer.userLogin(this.playerTracker.socket.remoteAddress, password);
+        var user = this.userLogin(this.playerTracker.socket.remoteAddress, password);
         if (!user) {
             this.writeLine("ERROR: login failed!");
             return;
@@ -125,5 +142,3 @@ var playerCommands = {
         process.exit(0);
     }
 };
-
-

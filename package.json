@@ -1,13 +1,12 @@
-﻿{
-    "name": "MultiOgar",
-    "version": "1.2.69",
-    "description": "Open source Ogar server",
-    "author": "Barbosik (https://github.com/Barbosik/MultiOgar)",
-    "homepage": "https://github.com/Barbosik/MultiOgar",
+{
+    "name": "MultiOgar-Edited",
+    "version": "1.4.1",
+    "description": "Open source multi-protocol Ogar server",
+    "author": "Megabyte918 (https://github.com/Megabyte918)",
+    "homepage": "https://github.com/Megabyte918/MultiOgar-Edited",
     "license": "Apache-2.0",
     "main": "src/index.js",
     "dependencies": {
-        "quad-node": "^1.0.5",
         "vector2-node": "latest",
         "ws": "latest"
     },
@@ -17,9 +16,9 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/Barbosik/MultiOgar"
+        "url": "https://github.com/Megabyte918/MultiOgar-Edited"
     },
     "bugs": {
-        "url": "https://github.com/Barbosik/MultiOgar/issues"
+        "url": "https://github.com/Megabyte918/MultiOgar-Edited/issues"
     }
 }
