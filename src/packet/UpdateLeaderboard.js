@@ -63,7 +63,7 @@ UpdateLeaderboard.prototype.buildFfa5 = function () {
         var item = this.leaderboard[i];
         if (item == null) return null;  // bad leaderboardm just don't send it
         
-        var name = item.getNameUnicode();
+        var name = item._nameUnicode;
         var id = 0;
         if (item == player && item.cells.length > 0) {
             id = item.cells[0].nodeId ^ this.playerTracker.scrambleId;
@@ -91,7 +91,7 @@ UpdateLeaderboard.prototype.buildFfa6 = function () {
         var item = this.leaderboard[i];
         if (item == null) return null;  // bad leaderboardm just don't send it
         
-        var name = item.getNameUtf8();
+        var name = item._nameUtf8;
         var id = item == player ? 1 : 0;
         
         writer.writeUInt32(id >>> 0);   // isMe flag

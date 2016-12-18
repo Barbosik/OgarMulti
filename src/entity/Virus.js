@@ -1,12 +1,9 @@
-﻿var Cell = require('./Cell');
-var Logger = require('../modules/Logger');
+var Cell = require('./Cell');
 
 function Virus() {
     Cell.apply(this, Array.prototype.slice.call(arguments));
-    
     this.cellType = 2;
     this.isSpiked = true;
-    this.fed = 0;
     this.isMotherCell = false; // Not to confuse bots
     this.setColor({ r: 0x33, g: 0xff, b: 0x33 });
 }
@@ -22,43 +19,55 @@ Virus.prototype.canEat = function (cell) {
 
 Virus.prototype.onEat = function (prey) {
     // Called to eat prey cell
-    this.setSize(Math.sqrt(this.getSizeSquared() + prey.getSizeSquared()));
+    this.setSize(Math.sqrt(this._sizeSquared + prey._sizeSquared));
     
-    if (this.getSize() >= this.gameServer.config.virusMaxSize) {
+    if (this._size >= this.gameServer.config.virusMaxSize) {
         this.setSize(this.gameServer.config.virusMinSize); // Reset mass
-        this.gameServer.shootVirus(this, prey.getAngle());
+        this.gameServer.shootVirus(this, prey.boostDirection.angle);
     }
 };
 
-Virus.prototype.onEaten = function (consumer) {
-    var client = consumer.owner;
-    if (client == null) return;
+Virus.prototype.onEaten = function (c) {
+    if (c.owner == null) return;
+
+    var minSize = this.gameServer.config.playerMinSize,
+    min = (minSize == 32) ? 30 : minSize, // minimun size of small splits
+    cellsLeft = this.gameServer.config.playerMaxCells - c.owner.cells.length,
+    numSplits = cellsLeft < (c._mass / 16) ? cellsLeft : (c._mass / 16),
+    splitMass = (c._mass / numSplits) < min ? (c._mass / numSplits) : min;
     
-    var maxSplit = this.gameServer.config.playerMaxCells - consumer.owner.cells.length;
-    var masses = this.gameServer.splitMass(consumer.getMass(), maxSplit + 1);
-    if (masses.length < 2) {
-        return;
+    // Diverse explosion(s)
+    var big = [];
+    if (numSplits <= 0) return; // can't split anymore
+    if (numSplits == 1) big = [c._mass/2];
+    else if (numSplits == 2) big = [c._mass/4,c._mass/4];
+    else if (numSplits == 3) big = [c._mass/4,c._mass/4,c._mass/7];
+    else if (numSplits == 4) big = [c._mass/5,c._mass/7,c._mass/8,c._mass/10];
+    else {
+        // ckeck size of exploding
+        var threshold = c._mass - numSplits * splitMass; 
+        // Monotone explosion(s)
+        if (threshold > 466) {
+            // virus explosion multipliers
+            var exp = (Math.random() * (4 - 3.33)) + 3.33; 
+            while (threshold / exp > 24) {
+                threshold /= exp;
+                exp = 2;
+                big.push(threshold >> 0);
+            }
+        }
     }
-    
-    // Balance mass around center & skip first mass (==consumer mass)
-    var massesMix = [];
-    for (var i = 1; i < masses.length; i += 2)
-        massesMix.push(masses[i]);
-    for (var i = 2; i < masses.length; i += 2)
-        massesMix.push(masses[i]);
-    masses = massesMix;
-    
-    // Blow up the cell...
-    var angle = 2 * Math.PI * Math.random();
-    var step = 2 * Math.PI / masses.length;
-    for (var i = 0; i < masses.length; i++) {
-        if (!this.gameServer.splitPlayerCell(client, consumer, angle, masses[i])) {
-            break;
-        }
-        angle += step;
-        if (angle >= 2 * Math.PI) {
-            angle -= 2 * Math.PI;
-        }
+    numSplits -= big.length;
+    // big splits
+    var angle = 0;
+    for (var k = 0; k < big.length; k++) {
+        angle = 2 * Math.PI * Math.random(); // random directions
+        this.gameServer.splitPlayerCell(c.owner, c, angle, big[k]);
+    }
+    // small splits
+    for (var k = 0; k < numSplits; k++) {
+        angle = 2 * Math.PI * Math.random(); // random directions
+        this.gameServer.splitPlayerCell(c.owner, c, angle, min);
     }
 };
 
@@ -68,9 +77,6 @@ Virus.prototype.onAdd = function (gameServer) {
 
 Virus.prototype.onRemove = function (gameServer) {
     var index = gameServer.nodesVirus.indexOf(this);
-    if (index != -1) {
+    if (index != -1) 
         gameServer.nodesVirus.splice(index, 1);
-    } else {
-        Logger.error("Virus.onRemove: Tried to remove a non existing virus!");
-    }
 };
