@@ -1,9 +1,3 @@
-﻿// Import
-var BinaryWriter = require("./BinaryWriter");
-var Logger = require('../modules/Logger');
-
-var sharedWriter = new BinaryWriter(128*1024); // for about 25000 cells per client
-
 function UpdateNodes(playerTracker, addNodes, updNodes, eatNodes, delNodes) {
     this.playerTracker = playerTracker;
     this.addNodes = addNodes;
@@ -17,6 +11,8 @@ module.exports = UpdateNodes;
 UpdateNodes.prototype.build = function (protocol) {
     if (!protocol) return null;
     
+    var BinaryWriter = require("./BinaryWriter");
+    var sharedWriter = new BinaryWriter(128*1024); // for about 25000 cells per client
     var writer = sharedWriter;
     writer.reset();
     writer.writeUInt8(0x10);                                // Packet ID
@@ -47,8 +43,8 @@ UpdateNodes.prototype.writeUpdateItems4 = function (writer) {
         writer.writeUInt32((node.nodeId ^ scrambleId) >>> 0);         // Cell ID
         writer.writeInt16(cellX >> 0);                // Coordinate X
         writer.writeInt16(cellY >> 0);                // Coordinate Y
-        writer.writeUInt16(node.getSize() >>> 0);     // Cell Size (not to be confused with mass, because mass = size*size/100)
-        var color = node.getColor();
+        writer.writeUInt16(node._size >>> 0);     // Cell Size (not to be confused with mass, because mass = size*size/100)
+        var color = node.color;
         writer.writeUInt8(color.r >>> 0);         // Color R
         writer.writeUInt8(color.g >>> 0);         // Color G
         writer.writeUInt8(color.b >>> 0);         // Color B
@@ -72,15 +68,15 @@ UpdateNodes.prototype.writeUpdateItems4 = function (writer) {
         var cellY = node.position.y + scrambleY;
         var cellName = null;
         if (node.owner) {
-            cellName = node.owner.getNameUnicode();
+            cellName = node.owner._nameUnicode;
         }
         
         // Write update record
         writer.writeUInt32((node.nodeId ^ scrambleId) >>> 0);         // Cell ID
         writer.writeInt16(cellX >> 0);                // Coordinate X
         writer.writeInt16(cellY >> 0);                // Coordinate Y
-        writer.writeUInt16(node.getSize() >>> 0);     // Cell Size (not to be confused with mass, because mass = size*size/100)
-        var color = node.getColor();
+        writer.writeUInt16(node._size >>> 0);     // Cell Size (not to be confused with mass, because mass = size*size/100)
+        var color = node.color;
         writer.writeUInt8(color.r >>> 0);         // Color R
         writer.writeUInt8(color.g >>> 0);         // Color G
         writer.writeUInt8(color.b >>> 0);         // Color B
@@ -119,8 +115,8 @@ UpdateNodes.prototype.writeUpdateItems5 = function (writer) {
         writer.writeUInt32((node.nodeId ^ scrambleId) >>> 0);         // Cell ID
         writer.writeInt32(cellX >> 0);                // Coordinate X
         writer.writeInt32(cellY >> 0);                // Coordinate Y
-        writer.writeUInt16(node.getSize() >>> 0);     // Cell Size (not to be confused with mass, because mass = size*size/100)
-        var color = node.getColor();
+        writer.writeUInt16(node._size >>> 0);     // Cell Size (not to be confused with mass, because mass = size*size/100)
+        var color = node.color;
         writer.writeUInt8(color.r >>> 0);         // Color R
         writer.writeUInt8(color.g >>> 0);         // Color G
         writer.writeUInt8(color.b >>> 0);         // Color B
@@ -146,16 +142,16 @@ UpdateNodes.prototype.writeUpdateItems5 = function (writer) {
         var skinName = null;
         var cellName = null;
         if (node.owner) {
-            skinName = node.owner.getSkinUtf8();
-            cellName = node.owner.getNameUnicode();
+            skinName = node.owner._skinUtf8;
+            cellName = node.owner._nameUnicode;
         }
         
         // Write update record
         writer.writeUInt32((node.nodeId ^ scrambleId) >>> 0);         // Cell ID
         writer.writeInt32(cellX >> 0);                // Coordinate X
         writer.writeInt32(cellY >> 0);                // Coordinate Y
-        writer.writeUInt16(node.getSize() >>> 0);     // Cell Size (not to be confused with mass, because mass = size*size/100)
-        var color = node.getColor();
+        writer.writeUInt16(node._size >>> 0);     // Cell Size (not to be confused with mass, because mass = size*size/100)
+        var color = node.color;
         writer.writeUInt8(color.r >>> 0);         // Color R
         writer.writeUInt8(color.g >>> 0);         // Color G
         writer.writeUInt8(color.b >>> 0);         // Color B
@@ -199,7 +195,7 @@ UpdateNodes.prototype.writeUpdateItems6 = function (writer) {
         writer.writeUInt32((node.nodeId ^ scrambleId) >>> 0);         // Cell ID
         writer.writeInt32(cellX >> 0);                // Coordinate X
         writer.writeInt32(cellY >> 0);                // Coordinate Y
-        writer.writeUInt16(node.getSize() >>> 0);     // Cell Size (not to be confused with mass, because mass = size*size/100)
+        writer.writeUInt16(node._size >>> 0);     // Cell Size (not to be confused with mass, because mass = size*size/100)
         
         var flags = 0;
         if (node.isSpiked)
@@ -213,7 +209,7 @@ UpdateNodes.prototype.writeUpdateItems6 = function (writer) {
         writer.writeUInt8(flags >>> 0);                  // Flags
         
         if (flags & 0x02) {
-            var color = node.getColor();
+            var color = node.color;
             writer.writeUInt8(color.r >>> 0);       // Color R
             writer.writeUInt8(color.g >>> 0);       // Color G
             writer.writeUInt8(color.b >>> 0);       // Color B
@@ -229,15 +225,15 @@ UpdateNodes.prototype.writeUpdateItems6 = function (writer) {
         var skinName = null;
         var cellName = null;
         if (node.owner) {
-            skinName = node.owner.getSkinUtf8();
-            cellName = node.owner.getNameUtf8();
+            skinName = node.owner._skinUtf8;
+            cellName = node.owner._nameUtf8;
         }
         
         // Write update record
         writer.writeUInt32((node.nodeId ^ scrambleId) >>> 0);         // Cell ID
         writer.writeInt32(cellX >> 0);                // Coordinate X
         writer.writeInt32(cellY >> 0);                // Coordinate Y
-        writer.writeUInt16(node.getSize() >>> 0);     // Cell Size (not to be confused with mass, because mass = size*size/100)
+        writer.writeUInt16(node._size >>> 0);     // Cell Size (not to be confused with mass, because mass = size*size/100)
         
         var flags = 0;
         if (node.isSpiked)
@@ -255,7 +251,7 @@ UpdateNodes.prototype.writeUpdateItems6 = function (writer) {
         writer.writeUInt8(flags >>> 0);                  // Flags
         
         if (flags & 0x02) {
-            var color = node.getColor();
+            var color = node.color;
             writer.writeUInt8(color.r >>> 0);       // Color R
             writer.writeUInt8(color.g >>> 0);       // Color G
             writer.writeUInt8(color.b >>> 0);       // Color B
@@ -275,8 +271,8 @@ UpdateNodes.prototype.writeEatItems = function (writer) {
     for (var i = 0; i < this.eatNodes.length; i++) {
         var node = this.eatNodes[i];
         var hunterId = 0;
-        if (node.getKiller()) {
-            hunterId = node.getKiller().nodeId;
+        if (node.killedBy) {
+            hunterId = node.killedBy.nodeId;
         }
         writer.writeUInt32((hunterId ^ scrambleId) >>> 0);               // Hunter ID
         writer.writeUInt32((node.nodeId ^ scrambleId) >>> 0);            // Prey ID

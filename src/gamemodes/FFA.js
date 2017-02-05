@@ -1,4 +1,4 @@
-﻿var Mode = require('./Mode');
+var Mode = require('./Mode');
 
 function FFA() {
     Mode.apply(this, Array.prototype.slice.call(arguments));
@@ -13,13 +13,13 @@ FFA.prototype = new Mode();
 
 // Gamemode Specific Functions
 
-FFA.prototype.leaderboardAddSort = function (player, leaderboard) {
+FFA.prototype.leaderboardAddSort = function(player, leaderboard) {
     // Adds the player and sorts the leaderboard
     var len = leaderboard.length - 1;
     var loop = true;
     while ((len >= 0) && (loop)) {
         // Start from the bottom of the leaderboard
-        if (player.getScore() <= leaderboard[len].getScore()) {
+        if (player._score <= leaderboard[len]._score) {
             leaderboard.splice(len + 1, 0, player);
             loop = false; // End the loop if a spot is found
         }
@@ -33,13 +33,13 @@ FFA.prototype.leaderboardAddSort = function (player, leaderboard) {
 
 // Override
 
-FFA.prototype.onPlayerSpawn = function (gameServer, player) {
-    player.setColor(player.isMinion ? { r: 240, g: 240, b: 255 } : gameServer.getRandomColor());
+FFA.prototype.onPlayerSpawn = function(gameServer, player) {
+    player.setColor(gameServer.getRandomColor());
     // Spawn player
-    gameServer.spawnPlayer(player);
+    gameServer.spawnPlayer(player, gameServer.randomPos());
 };
 
-FFA.prototype.updateLB = function (gameServer) {
+FFA.prototype.updateLB = function(gameServer) {
     gameServer.leaderboardType = this.packetLB;
     var lb = gameServer.leaderboard;
     // Loop through all clients
@@ -48,10 +48,8 @@ FFA.prototype.updateLB = function (gameServer) {
         if (client == null) continue;
         
         var player = client.playerTracker;
-        if (player.isRemoved)
+        if (player.socket.isConnected == false)
             continue; // Don't add disconnected players to list
-        
-        var playerScore = player.getScore();
         
         if (player.cells.length <= 0)
             continue;
@@ -64,7 +62,7 @@ FFA.prototype.updateLB = function (gameServer) {
             this.leaderboardAddSort(player, lb);
         } else {
             // 10 in leaderboard already
-            if (playerScore > lb[gameServer.config.serverMaxLB - 1].getScore()) {
+            if (player._score > lb[gameServer.config.serverMaxLB - 1]._score) {
                 lb.pop();
                 this.leaderboardAddSort(player, lb);
             }
@@ -72,4 +70,4 @@ FFA.prototype.updateLB = function (gameServer) {
     }
     
     this.rankOne = lb[0];
-}
+};
