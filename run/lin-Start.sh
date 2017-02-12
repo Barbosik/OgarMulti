@@ -21,12 +21,12 @@ fi
 #This will give priority to nodejs
 command -v nodejs &>/dev/null
 if [ $? -eq 0 ]; then
-    nodejs index.js
+    nodejs ../src/index.js
 else
     command -v nodejs &>/dev/null
     
     if [ $? -eq 0 ]; then
-        node index.js
+        node ../src/index.js
     else
         echo "Couldn't find nodejs. Please install it and ensure it is in your \$PATH"
     fi

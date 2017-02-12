@@ -1,8 +1,3 @@
-﻿// Import
-var BinaryWriter = require("./BinaryWriter");
-var UserRoleEnum = require("../enum/UserRoleEnum");
-
-
 function ChatMessage(sender, message) {
     this.sender = sender;
     this.message = message;
@@ -16,7 +11,7 @@ ChatMessage.prototype.build = function (protocol) {
     var name = "SERVER";
     var color = { 'r': 0x9B, 'g': 0x9B, 'b': 0x9B };
     if (this.sender != null) {
-        name = this.sender.getName();
+        name = this.sender._name;
         if (name == null || name.length == 0) {
             if (this.sender.cells.length > 0)
                 name = "An unnamed cell";
@@ -24,10 +19,11 @@ ChatMessage.prototype.build = function (protocol) {
                 name = "Spectator";
         }
         if (this.sender.cells.length > 0) {
-            color = this.sender.cells[0].getColor();
+            color = this.sender.cells[0].color;
         }
     }
-    
+    var UserRoleEnum = require("../enum/UserRoleEnum");
+    var BinaryWriter = require("./BinaryWriter");
     var writer = new BinaryWriter();
     writer.writeUInt8(0x63);            // message id (decimal 99)
     
@@ -44,7 +40,7 @@ ChatMessage.prototype.build = function (protocol) {
     writer.writeUInt8(color.r >> 0);
     writer.writeUInt8(color.g >> 0);
     writer.writeUInt8(color.b >> 0);
-    if (protocol <= 5) {
+    if (protocol < 6) {
         writer.writeStringZeroUnicode(name);
         writer.writeStringZeroUnicode(text);
     } else {

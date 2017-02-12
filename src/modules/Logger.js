@@ -251,7 +251,7 @@ function shutdown() {
 
 var logFolder = "./logs";
 var logBackupFolder = "./logs/LogBackup";
-var logFileName = "MultiOgar";
+var logFileName = "ServerLog";
 
 var consoleLog = null;
 var colorBlack = "\u001B[30m";
