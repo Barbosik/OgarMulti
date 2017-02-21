@@ -1,5 +1,4 @@
 ﻿// Imports
-var pjson = require('../package.json');
 var Logger = require('./modules/Logger');
 var Commands = require('./modules/CommandList');
 var GameServer = require('./GameServer');
@@ -20,9 +19,6 @@ process.on('uncaughtException', function (err) {
     process.exit(1);
 });
 
-Logger.info("\u001B[1m\u001B[32mMultiOgar " + pjson.version + "\u001B[37m - An open source multi-protocol ogar server\u001B[0m");
-
-
 // Handle arguments
 process.argv.forEach(function (val) {
     if (val == "--noconsole") {
@@ -37,7 +33,9 @@ process.argv.forEach(function (val) {
 
 // Run Ogar
 var gameServer = new GameServer();
+Logger.info("\u001B[1m\u001B[32mMultiOgar-Edited " + gameServer.version + "\u001B[37m - An open source multi-protocol ogar server\u001B[0m");
 gameServer.start();
+
 // Add command handler
 gameServer.commands = Commands.list;
 // Initialize the server console
