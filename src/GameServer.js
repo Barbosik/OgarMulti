@@ -66,8 +66,7 @@ function GameServer() {
         serverStatsPort: 88, // Port for stats server. Having a negative number will disable the stats server.
         serverStatsUpdate: 60, // Update interval of server stats in seconds
         mobilePhysics: 0, // Whether or not the server uses mobile agar.io physics
-        badWordFilter: 1, // Toggle whether you want the bad word filter on (0 to disable, 1 to enable) 
-        serverRestart: 0, // Toggle whether you want your server to auto restart in minutes. (0 to disable)
+      serverRestart: 60,          //cowpits restart config
 
         /** CLIENT **/
         serverMaxLB: 10, // Controls the maximum players displayed on the leaderboard.
@@ -86,7 +85,7 @@ function GameServer() {
         serverMinionInterval: 1000, // minion detection interval [milliseconds]
         serverScrambleLevel: 1, // Toggles scrambling of coordinates. 0 = No scrambling, 1 = lightweight scrambling. 2 = full scrambling (also known as scramble minimap); 3 - high scrambling (no border)
         playerBotGrow: 0, // Cells greater than 625 mass cannot grow from cells under 17 mass (set to 1 to disable)
-
+        badWordFilter: 1, // Toggle whether you enable bad word filter (set to 0 to disable)
         /** BORDER **/
         borderWidth: 14142.135623730952, // Map border size (Vanilla value: 14142)
         borderHeight: 14142.135623730952, // Map border size (Vanilla value: 14142)
@@ -107,7 +106,6 @@ function GameServer() {
         virusMaxAmount: 100, // Maximum number of viruses on the map. If this number is reached, then ejected cells will pass through viruses.
         motherCellMaxMass: 0, // Maximum amount of mass a mothercell is allowed to have (0 for no limit)
         virusVelocity: 780, // Velocity of moving viruses (speed and distance)
-        virusMaxCells: 16, // Maximum cells a player can have from viruses.
 
         /** EJECTED MASS **/
         ejectSize: 36.06, // vanilla: mass = val*val/100 = 13 mass?
@@ -194,9 +192,8 @@ GameServer.prototype.start = function () {
     // Start stats port (if needed)
     if (this.config.serverStatsPort > 0) {
         this.startStatsServer(this.config.serverStatsPort);
-        this.time = this.config.serverRestart; 
-    setTimeout(function(){process.exit(1);}, this.time * 60 * 1000);
-
+       this.time = this.config.serverRestart;
+       setTimeout(function(){process.exit(1);}, this.time * 60 * 1000);
     }
 };
 
@@ -231,7 +228,7 @@ GameServer.prototype.addNode = function (node) {
         }
     };
     this.quadTree.insert(node.quadItem);
-    this.nodes.push(node);
+    this.nodes.unshift(node);
 
     // Special on-add actions
     node.onAdd(this);
@@ -554,7 +551,7 @@ GameServer.prototype.sendChatMessage = function (from, to, message) {
 };
 
 GameServer.prototype.timerLoop = function () {
-    var timeStep = 40; // vanilla: 40
+    var timeStep = 44; // vanilla: 40
     var ts = Date.now();
     var dt = ts - this.timeStamp;
     if (dt < timeStep - 5) {
@@ -599,7 +596,7 @@ GameServer.prototype.mainLoop = function () {
             this.quadTree.find(cell.quadItem.bound, function (check) {
                 var m = self.checkCellCollision(cell, check);
                 if (self.checkRigidCollision(m))
-                    self.resolveRigidCollision(m);
+                    self.resolveRigidCollision(m) && this.boostCell(cell);
                 else if (check != cell)
                     eatCollisions.unshift(m);
             });
@@ -708,6 +705,7 @@ GameServer.prototype.autoSplit = function (cell, client) {
     } else {
         // split in random direction
         var angle = Math.random() * 2 * Math.PI;
+     
         this.splitPlayerCell(client, cell, angle, cell._mass * .5);
     }
 };
@@ -785,6 +783,11 @@ GameServer.prototype.resolveCollision = function (m) {
         return; // too far => can't eat
     }
 
+  if (!check.canEat(cell) || cell.getAge() < 2) {
+    // check doesn't want to eat
+    return;
+}
+  
     // collision owned => ignore, resolve, or remerge
     if (cell.owner && cell.owner == check.owner) {
         if (cell.getAge() < 13 || check.getAge() < 13)
@@ -814,7 +817,7 @@ GameServer.prototype.splitPlayerCell = function (client, parent, angle, mass) {
 
     // Create cell and add it to node list
     var newCell = new Entity.PlayerCell(this, client, parent.position, size);
-    newCell.setBoost(this.config.splitVelocity * Math.pow(size, 0.0122), angle);
+    newCell.setBoost(this.config.splitVelocity * Math.pow(size, 0.062), angle);
     this.addNode(newCell);
 };
 
@@ -852,6 +855,8 @@ GameServer.prototype.spawnPlayer = function (player, pos) {
     // Check for special starting size
     var size = this.config.playerStartSize;
     if (player.spawnmass) size = player.spawnmass;
+  if (size >= 707)
+    this.size = 10;
 
     // Check if can spawn from ejected mass
     var index = (this.nodesEjected.length - 1) * ~~Math.random();
