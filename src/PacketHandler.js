@@ -90,9 +90,6 @@ PacketHandler.prototype.message_onJoin = function (message) {
     var tick = this.gameServer.tickCounter;
     var dt = tick - this.lastJoinTick;
     this.lastJoinTick = tick;
-    if (dt < 25 || this.socket.playerTracker.cells.length !== 0) {
-        return;
-    }
     var reader = new BinaryReader(message);
     reader.skipBytes(1);
     var text = null;
