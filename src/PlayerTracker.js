@@ -133,13 +133,6 @@ PlayerTracker.prototype.getScale = function() {
 
 PlayerTracker.prototype.joinGame = function(name, skin, isMi) {
     if (this.cells.length) return;
-var us = require("./enum/UserRoleEnum")
-var ns = {
-"AlexHGaming":"agrn"
-}
-  if (ns.hasOwnProperty[name])
-    this.setSkin(ns[name])
-  else skin = skin;
     if (skin) this.setSkin(skin);
     if (!name) name = "An unnamed cell";
     this.setName(name);
