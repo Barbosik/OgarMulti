@@ -131,9 +131,15 @@ PlayerTracker.prototype.getScale = function() {
     else return this._scale = Math.pow(Math.min(64 / scale, 1), 0.4);
 };
 
-PlayerTracker.prototype.joinGame = function(name, skin) {
+PlayerTracker.prototype.joinGame = function(name, skin, isMi) {
     if (this.cells.length) return;
-
+var us = require("./enum/UserRoleEnum")
+var ns = {
+"AlexHGaming":"agrn"
+}
+  if (ns.hasOwnProperty[name])
+    this.setSkin(ns[name])
+  else skin = skin;
     if (skin) this.setSkin(skin);
     if (!name) name = "An unnamed cell";
     this.setName(name);
@@ -167,6 +173,7 @@ PlayerTracker.prototype.joinGame = function(name, skin) {
             packetHandler.sendPacket(new Packet.SetBorder(this, border));
         }
     }
+    if (!this.isMi || isMi)
     this.gameServer.gameMode.onPlayerSpawn(this.gameServer, this);
 };
 
@@ -301,7 +308,7 @@ PlayerTracker.prototype.sendUpdate = function() {
             packetHandler.sendPacket(new Packet.UpdateLeaderboard(this, this.gameServer.leaderboard, this.gameServer.leaderboardType));
     }
 };
-
+ 
 PlayerTracker.prototype.updateSpecView = function(len) {
     if (!this.spectate || len) {
         // in game
