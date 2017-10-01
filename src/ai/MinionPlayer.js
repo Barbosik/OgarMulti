@@ -17,10 +17,14 @@ MinionPlayer.prototype.checkConnection = function () {
         this.isRemoved = true;
         return;
     }
-    if (!this.cells.length) {
-        this.gameServer.gameMode.onPlayerSpawn(this.gameServer, this);
-        if (!this.cells.length) this.socket.close();
-    }
+if (this.owner.cells.length) {
+		if (!this.owner._name) {
+		this.joinGame(this.owner._name, this.owner._skin)
+		} else {
+    this.joinGame(this.owner._name + "'s bot", this.owner._skin, true)
+		}
+    if (!this.cells.length) this.socket.close();
+}
 
     // remove if owner has disconnected or has no control
     if (this.owner.socket.isConnected == false || !this.owner.minionControl) 
