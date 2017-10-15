@@ -1,10 +1,10 @@
-﻿var Tournament = require('./Tournament');
+var Tournament = require('./Tournament');
 var Entity = require('../entity');
 
 function HungerGames() {
     Tournament.apply(this, Array.prototype.slice.call(arguments));
     
-    this.ID = 11;
+    this.ID = 5;
     this.name = "Hunger Games";
     
     // Gamemode Specific Variables
@@ -80,7 +80,7 @@ HungerGames.prototype.getPos = function () {
 
 HungerGames.prototype.spawnFood = function (gameServer, mass, pos) {
     var cell = new Entity.Food(gameServer, null, pos, mass);
-    cell.setColor(gameServer.getRandomColor());
+    cell.color = gameServer.getRandomColor();
     gameServer.addNode(cell);
 };
 
@@ -99,7 +99,7 @@ HungerGames.prototype.onPlayerDeath = function (gameServer) {
     for (var i = 0; i < len; i++) {
         var node = gameServer.nodes[i];
         
-        if ((!node) || (node.getType() == 0)) {
+        if ((!node) || (node.cellType == 0)) {
             continue;
         }
         
@@ -145,7 +145,9 @@ HungerGames.prototype.onServerInit = function (gameServer) {
     gameServer.config.virusMaxAmount = 100;
     gameServer.config.ejectSpawnPlayer = 0;
     gameServer.config.playerDisconnectTime = 10; // So that people dont disconnect and stall the game for too long
-    
+    gameServer.setBorder(
+        gameServer.border.width,
+        gameServer.border.height);
     // Spawn Initial Virus/Large food
     var mapWidth = gameServer.border.width;
     var mapHeight = gameServer.border.height;
@@ -290,7 +292,7 @@ HungerGames.prototype.onServerInit = function (gameServer) {
 HungerGames.prototype.onPlayerSpawn = function (gameServer, player) {
     // Only spawn players if the game hasnt started yet
     if ((this.gamePhase == 0) && (this.contenders.length < this.maxContenders)) {
-        player.setColor(gameServer.getRandomColor()); // Random color
+        player.color = gameServer.getRandomColor(); // Random color
         this.contenders.push(player); // Add to contenders list
         gameServer.spawnPlayer(player, this.getPos());
         

@@ -1,12 +1,12 @@
-﻿var Mode = require('./Mode');
+var Mode = require('./Mode');
 
 function Tournament() {
     Mode.apply(this, Array.prototype.slice.call(arguments));
     
-    this.ID = 10;
+    this.ID = 4;
     this.name = "Tournament";
     this.packetLB = 48;
-    
+    this.IsTournament = true;
     // Config (1 tick = 1000 ms)
     this.prepTime = 5; // Amount of ticks after the server fills up to wait until starting the game
     this.endTime = 15; // Amount of ticks after someone wins to restart the game
@@ -128,9 +128,9 @@ Tournament.prototype.onServerInit = function (gameServer) {
 Tournament.prototype.onPlayerSpawn = function (gameServer, player) {
     // Only spawn players if the game hasnt started yet
     if ((this.gamePhase == 0) && (this.contenders.length < this.maxContenders)) {
-        player.setColor(gameServer.getRandomColor()); // Random color
+        player.color = gameServer.getRandomColor(); // Random color
         this.contenders.push(player); // Add to contenders list
-        gameServer.spawnPlayer(player);
+        gameServer.spawnPlayer(player, gameServer.randomPos());
         
         if (this.contenders.length == this.maxContenders) {
             // Start the game once there is enough players
@@ -174,10 +174,8 @@ Tournament.prototype.onCellRemove = function (cell) {
     }
 };
 
-Tournament.prototype.updateLB = function (gameServer) {
+Tournament.prototype.updateLB = function (gameServer, lb) {
     gameServer.leaderboardType = this.packetLB;
-    var lb = gameServer.leaderboard;
-    
     switch (this.gamePhase) {
         case 0:
             lb[0] = "Waiting for";
@@ -216,13 +214,11 @@ Tournament.prototype.updateLB = function (gameServer) {
             break;
         case 3:
             lb[0] = "Congratulations";
-            lb[1] = this.winner.getName();
+            lb[1] = this.winner._name;
             lb[2] = "for winning!";
             if (this.timer <= 0) {
                 // Reset the game
-                this.onServerInit(gameServer);
-                // Respawn starting food
-                gameServer.startingFood();
+                process.exit(3);
             } else {
                 lb[3] = "Game restarting in";
                 lb[4] = this.timer.toString();
@@ -234,9 +230,7 @@ Tournament.prototype.updateLB = function (gameServer) {
             lb[1] = "Reached!";
             if (this.timer <= 0) {
                 // Reset the game
-                this.onServerInit(gameServer);
-                // Respawn starting food
-                gameServer.startingFood();
+                process.exit(3);
             } else {
                 lb[2] = "Game restarting in";
                 lb[3] = this.timer.toString();

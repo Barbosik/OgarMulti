@@ -10,4 +10,5 @@
 define("GUEST", 0);
 define("USER", 1);
 define("MODER", 2);
+define("SUP", 3);
 define("ADMIN", 4);

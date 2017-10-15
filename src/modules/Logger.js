@@ -36,38 +36,44 @@ module.exports.getVerbosity = function () {
 module.exports.getFileVerbosity = function () {
     return logFileVerbosity;
 };
+module.exports.setLightBackgroundColorscheme = function () {
+    colorscheme = light_background_colorscheme;
+}
+module.exports.setDarkBackgroundColorscheme = function () {
+    colorscheme = dark_background_colorscheme;
+}
 
 
 var logVerbosity = LogLevelEnum.DEBUG;
 var logFileVerbosity = LogLevelEnum.DEBUG;
 
 function debug(message) {
-    writeCon(colorWhite, LogLevelEnum.DEBUG, message);
+    writeCon(colorscheme.debug, LogLevelEnum.DEBUG, message);
     writeLog(LogLevelEnum.DEBUG, message);
 };
 
 function info(message) {
-    writeCon(colorWhite + colorBright, LogLevelEnum.INFO, message);
+    writeCon(colorscheme.info, LogLevelEnum.INFO, message);
     writeLog(LogLevelEnum.INFO, message);
 };
 
 function warn(message) {
-    writeCon(colorYellow + colorBright, LogLevelEnum.WARN, message);
+    writeCon(colorscheme.warn, LogLevelEnum.WARN, message);
     writeLog(LogLevelEnum.WARN, message);
 };
 
 function error(message) {
-    writeCon(colorRed + colorBright, LogLevelEnum.ERROR, message);
+    writeCon(colorscheme.error, LogLevelEnum.ERROR, message);
     writeLog(LogLevelEnum.ERROR, message);
 };
 
 function fatal(message) {
-    writeCon(colorRed + colorBright, LogLevelEnum.FATAL, message);
+    writeCon(colorscheme.fatal, LogLevelEnum.FATAL, message);
     writeLog(LogLevelEnum.FATAL, message);
 };
 
 function print(message) {
-    writeCon(colorWhite, LogLevelEnum.NONE, message);
+    writeCon(colorscheme.print, LogLevelEnum.NONE, message);
     writeLog(LogLevelEnum.NONE, message);
 };
 
@@ -121,15 +127,15 @@ function writeCon(color, level, message) {
     message = util.format(message);
     var prefix = "";
     if (level == LogLevelEnum.DEBUG)
-        prefix = "[DEBUG] ";
+        prefix = "| [DEBUG] ";
     else if (level == LogLevelEnum.INFO)
-        prefix = "[INFO ] ";
+        prefix = "| [INFO] ";
     else if (level == LogLevelEnum.WARN)
-        prefix = "[WARN ] ";
+        prefix = "| [WARN] ";
     else if (level == LogLevelEnum.ERROR)
-        prefix = "[ERROR] ";
+        prefix = "| [ERROR] ";
     else if (level == LogLevelEnum.FATAL)
-        prefix = "[FATAL] ";
+        prefix = "| [FATAL] ";
     process.stdout.write(color + prefix + message + "\u001B[0m" + EOL);
 };
 
@@ -248,12 +254,12 @@ function shutdown() {
     flushSync();
 };
 
-
 var logFolder = "./logs";
 var logBackupFolder = "./logs/LogBackup";
-var logFileName = "MultiOgar";
+var logFileName = "ServerLog";
 
 var consoleLog = null;
+
 var colorBlack = "\u001B[30m";
 var colorRed = "\u001B[31m";
 var colorGreen = "\u001B[32m";
@@ -263,3 +269,23 @@ var colorMagenta = "\u001B[35m";
 var colorCyan = "\u001B[36m";
 var colorWhite = "\u001B[37m";
 var colorBright = "\u001B[1m";
+
+var light_background_colorscheme = {
+    debug: colorBlack,
+    info: colorBlack + colorBright,
+    warn: colorYellow + colorBright,
+    error: colorRed + colorBright,
+    fatal: colorRed + colorBright,
+    print: colorBlack
+};
+
+var dark_background_colorscheme = {
+    debug: colorWhite,
+    info: colorWhite + colorBright,
+    warn: colorYellow + colorBright,
+    error: colorRed + colorBright,
+    fatal: colorRed + colorBright,
+    print: colorWhite
+};
+
+var colorscheme = dark_background_colorscheme;
