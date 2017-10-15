@@ -11,6 +11,14 @@
         "role":"MODER",
         "name":"Local Moderator" 
     },
+    
+       { 
+        "ip":"127.0.0.1", 
+        "password":"",
+        "role":"MODER",
+        "name":"Lucky Winner :)" 
+    },
+    
     { 
         "ip":"127.0.0.1", 
         "password":"",
