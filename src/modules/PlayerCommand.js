@@ -87,6 +87,24 @@ var playerCommands = {
         else
             this.writeLine("Your skin set to " + skinName);
     },
+    
+ killall: function (args) {
+ if (this.playerTracker.userRole != UserRoleEnum.ADMIN) {
+ this.writeLine("ERROR: access denied!");
+ return;
+ }
+ var count = 0;
+ var cell = this.playerTracker.cells[0];
+ for (var i = 0; i < this.gameServer.clients.length; i++) {
+ var playerTracker = this.gameServer.clients[i].playerTracker;
+ while (playerTracker.cells.length > 0) {
+ this.gameServer.removeNode(playerTracker.cells[0]);
+ count++;
+ }
+ }
+ this.writeLine("You killed everyone. (" + count + (" cells.)"));
+ },
+     
     kill: function (args) {
         if (!this.playerTracker.cells.length) {
             this.writeLine("You cannot kill yourself, because you're still not joined to the game!");
