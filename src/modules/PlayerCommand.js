@@ -48,32 +48,18 @@ PlayerCommand.prototype.userLogin = function (ip, password) {
 
 var playerCommands = {
     help: function (args) {
-        if (this.playerTracker.userRole == UserRoleEnum.MODER) {
-                this.writeLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-            this.writeLine("/skin %shark - change skin");
-            this.writeLine("/kill - self kill");
-            this.writeLine("/killall - kills everyone.")
-            this.writeLine("/help - this command list");
-            this.writeLine("/id - Gets your playerID");
-            this.writeLine("/mass - gives mass to yourself or to other player");
-            this.writeLine("/minion - gives yourself or other player minions");
-            this.writeLine("/minion remove - removes all of your minions or other players minions");
-            this.writeLine("/status - Shows Status of the Server");
-            this.writeLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-        }
         if (this.playerTracker.userRole == UserRoleEnum.ADMIN) {
-        this.writeLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+            this.writeLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             this.writeLine("/skin %shark - change skin");
             this.writeLine("/kill - self kill");
-            this.writeLine("/killall - kills everyone.")
             this.writeLine("/help - this command list");
             this.writeLine("/id - Gets your playerID");
             this.writeLine("/mass - gives mass to yourself or to other player");
-            this.writeLine("/spawnmass - gives yourself or other player spawnmass");
+            this.writeLine("/spawnmass - gives yourself or other player spawnmass - MUST BE ADMIN");
             this.writeLine("/minion - gives yourself or other player minions");
             this.writeLine("/minion remove - removes all of your minions or other players minions");
-            this.writeLine("/addbot - Adds AI Bots to the Server");
-            this.writeLine("/shutdown - SHUTDOWNS THE SERVER");
+            this.writeLine("/addbot - Adds Bots to the Server - MUST BE ADMIN");
+            this.writeLine("/shutdown - SHUTDOWNS THE SERVER - MUST BE ADMIN");
             this.writeLine("/status - Shows Status of the Server");
             this.writeLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         } else {
@@ -85,8 +71,6 @@ var playerCommands = {
             this.writeLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         }
     },
-    
-    
     id: function (args) {
         this.writeLine("Your PlayerID is " + this.playerTracker.pID);
     },
@@ -119,26 +103,8 @@ var playerCommands = {
         }
         this.writeLine("You killed yourself");
     },
-    
-    killall: function (args) {
-if (this.playerTracker.userRole != UserRoleEnum.ADMIN && this.playerTracker.userRole != UserRoleEnum.MODER) {
-this.writeLine("ERROR: access denied!");
-return;
-}
-var count = 0;
-var cell = this.playerTracker.cells[0];
-for (var i = 0; i < this.gameServer.clients.length; i++) {
-var playerTracker = this.gameServer.clients[i].playerTracker;
-while (playerTracker.cells.length > 0) {
-this.gameServer.removeNode(playerTracker.cells[0]);
-count++;
-}
-}
-this.writeLine("You killed everyone. (" + count + (" cells.)"));
-},
-    
     mass: function (args) {
-        if (this.playerTracker.userRole != UserRoleEnum.ADMIN && this.playerTracker.userRole != UserRoleEnum.MODER) {
+        if (this.playerTracker.userRole != UserRoleEnum.ADMIN) {
             this.writeLine("ERROR: access denied!");
             return;
         }
@@ -204,7 +170,7 @@ this.writeLine("You killed everyone. (" + count + (" cells.)"));
         }
     },
     minion: function(args) {
-        if (this.playerTracker.userRole != UserRoleEnum.ADMIN && this.playerTracker.userRole != UserRoleEnum.MODER) {
+        if (this.playerTracker.userRole != UserRoleEnum.ADMIN) {
             this.writeLine("ERROR: access denied!");
             return;
         }
