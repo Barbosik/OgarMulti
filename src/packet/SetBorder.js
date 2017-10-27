@@ -1,7 +1,3 @@
-﻿// Import
-var BinaryWriter = require("./BinaryWriter");
-
-
 function SetBorder(playerTracker, border, gameType, serverName) {
     this.playerTracker = playerTracker;
     this.border = border;
@@ -23,6 +19,7 @@ SetBorder.prototype.build = function (protocol) {
         buffer.writeDoubleLE(this.border.maxy + scrambleY, 25, true);
         return buffer;
     }
+    var BinaryWriter = require("./BinaryWriter");
     var writer = new BinaryWriter();
     writer.writeUInt8(0x40);                                // Packet ID
     writer.writeDouble(this.border.minx + scrambleX);

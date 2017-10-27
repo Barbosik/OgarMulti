@@ -1,4 +1,4 @@
-﻿var Mode = require('./Mode');
+var Mode = require('./Mode');
 
 function Teams() {
     Mode.apply(this, Array.prototype.slice.call(arguments));
@@ -51,9 +51,9 @@ Teams.prototype.getTeamColor = function (team) {
 
 Teams.prototype.onPlayerSpawn = function (gameServer, player) {
     // Random color based on team
-    player.setColor(this.getTeamColor(player.team));
+    player.color = this.getTeamColor(player.team);
     // Spawn player
-    gameServer.spawnPlayer(player);
+    gameServer.spawnPlayer(player, gameServer.randomPos());
 };
 
 Teams.prototype.onServerInit = function (gameServer) {
@@ -66,10 +66,10 @@ Teams.prototype.onServerInit = function (gameServer) {
     for (var i = 0; i < gameServer.clients.length; i++) {
         var client = gameServer.clients[i].playerTracker;
         this.onPlayerInit(client);
-        client.setColor(this.getTeamColor(client.team));
+        client.color = this.getTeamColor(client.team);
         for (var j = 0; j < client.cells.length; j++) {
             var cell = client.cells[j];
-            cell.setColor(client.getColor());
+            cell.color = client.color;
             this.nodes[client.team].push(cell);
         }
     }
@@ -82,37 +82,34 @@ Teams.prototype.onPlayerInit = function (player) {
 
 Teams.prototype.onCellAdd = function (cell) {
     // Add to team list
-    this.nodes[cell.owner.getTeam()].push(cell);
+    this.nodes[cell.owner.team].push(cell);
 };
 
 Teams.prototype.onCellRemove = function (cell) {
     // Remove from team list
-    var index = this.nodes[cell.owner.getTeam()].indexOf(cell);
+    var index = this.nodes[cell.owner.team].indexOf(cell);
     if (index != -1) {
-        this.nodes[cell.owner.getTeam()].splice(index, 1);
+        this.nodes[cell.owner.team].splice(index, 1);
     }
 };
 
 Teams.prototype.onCellMove = function (cell, gameServer) {
-    var team = cell.owner.getTeam();
-    var r = cell.getSize();
-    
     // Find team
     for (var i = 0; i < cell.owner.visibleNodes.length; i++) {
         // Only collide with player cells
         var check = cell.owner.visibleNodes[i];
         
-        if ((check.getType() != 0) || (cell.owner == check.owner)) {
+        if ((check.cellType != 0) || (cell.owner == check.owner)) {
             continue;
         }
         
         // Collision with teammates
-        if (check.owner.getTeam() == team) {
-            
+        var team = cell.owner.team;
+        if (check.owner.team == team) {
             var manifold = gameServer.checkCellCollision(cell, check); // Calculation info
             if (manifold != null) { // Collided
-                // Call gameserver's function to collide cells
-                gameServer.resolveCollision(manifold);
+                // Cant eat team members
+                !manifold.cell2.canEat(manifold.cell1);
             }
         }
     }
@@ -130,13 +127,9 @@ Teams.prototype.updateLB = function (gameServer) {
         // Loop through cells
         for (var j = 0; j < this.nodes[i].length; j++) {
             var cell = this.nodes[i][j];
-            
-            if (!cell) {
-                continue;
-            }
-            
-            teamMass[i] += cell.getMass();
-            total += cell.getMass();
+            if (!cell) continue;
+            teamMass[i] += cell._mass;
+            total += cell._mass;
         }
     }
     // No players
@@ -144,7 +137,7 @@ Teams.prototype.updateLB = function (gameServer) {
         for (var i = 0; i < this.teamAmount; i++) {
             gameServer.leaderboard[i] = 0;
         }
-        return
+        return;
     }
     // Calc percentage
     for (var i = 0; i < this.teamAmount; i++) {
