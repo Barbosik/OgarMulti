@@ -1,15 +1,15 @@
 ﻿{
-    "name": "MultiOgar",
+    "name": "Agar.io Custom Game Server",
     "version": "1.2.69",
-    "description": "Open source Ogar server",
-    "author": "Barbosik (https://github.com/Barbosik/MultiOgar)",
+    "description": "Open source Ogar server froked from https://github.com/Barbosik/MultiOgar",
+    "author": "Alper Reha (https://github.com/AlperRehaYAZGAN/MultiOgar)",
     "homepage": "https://github.com/Barbosik/MultiOgar",
     "license": "Apache-2.0",
     "main": "src/index.js",
     "dependencies": {
         "quad-node": "^1.0.5",
         "vector2-node": "latest",
-        "ws": "latest"
+        "ws": "1.1.0"
     },
     "devDependencies": {},
     "scripts": {
@@ -17,9 +17,9 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/Barbosik/MultiOgar"
+        "url": "https://github.com/AlperRehaYAZGAN/MultiOgar"
     },
     "bugs": {
-        "url": "https://github.com/Barbosik/MultiOgar/issues"
+        "url": "https://github.com/AlperRehaYAZGAN/MultiOgar/issues"
     }
 }
